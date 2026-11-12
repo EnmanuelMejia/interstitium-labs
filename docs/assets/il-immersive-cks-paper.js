@@ -1,5 +1,5 @@
 /**
- * IL CKS hands-on paper v1.1.0 (2026-11-10; v1.0.0 2026-11-09) — a timed, PERFORMANCE-BASED mock for the CKS, over the six authored CKS
+ * IL CKS hands-on paper v1.2.0 (2026-11-11; v1.1.0 2026-11-10; v1.0.0 2026-11-09) — a timed, PERFORMANCE-BASED mock for the CKS, over the six authored CKS
  * glTF scenes (plus the RBAC and NetworkPolicy scenes the CKS blueprint shares with the CKA) and their CLI packs.
  *
  * Would Elon be impressed by a CKS track whose only "exam" is predict-then-reveal multiple choice, when the real CKS is
@@ -27,6 +27,18 @@
  * CIS check ids, kubelet ports (10250/10255) and system paths stay real because they are the same on every cluster;
  * the authored 3D scene node names and the review cards stay canonical (cards re-open the free-play drill).
  *
+ * v1.2.0 (2026-11-11) — seeded FAULT variants + multi-node tasks. Would Elon be impressed by "variants" that only rename
+ * things, so the three kube-bench tasks (fixed ids, ports and paths) were the same paper every time? No. So an incident may
+ * now carry FAULTS: alternative staged faults for the same task statement, each its own authored CLI task with its own
+ * setup, steps and ticket. The kube-bench incidents draw (own PRNG stream per seed+incident, so the v1.0.0 task draw and the
+ * v1.1.0 name draw are unchanged) which node is broken and how: controlplane vs node01 (a worker reached with `ssh node01`),
+ * anonymous + AlwaysAllow vs a ServiceAccount token under AlwaysAllow, one finding per node (API server profiling on
+ * controlplane + anonymous kubelet auth on node01). A drill replay of the canonical fault fails on the other faults
+ * (wrong host, wrong check, wrong probe), and node01 itself is a varied name (so `ssh node01` from memory does not resolve).
+ * `variants: false` (?variants=0) gives the canonical fault and names. All 24 incidents now vary per seed (21 by names, 3 by
+ * fault + host name). Honest scope: 7 authored faults over 3 incidents, not procedurally generated faults; the other 21
+ * incidents still vary names over one staged fault.
+ *
  * Honest scope: SIMULATED shell over the in-browser rules engine (real CLI syntax, computed output). Not a live
  * cluster, not killer.sh, not the CNCF CKS — Falco, AppArmor, kube-bench, kubesec, KubeLinter, Trivy, cosign and gVisor
  * are rules-engine stand-ins, not real tools, kernels or sandboxes. Scores stay on this device (il.cksPaper.v1).
@@ -39,13 +51,13 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (TS) {
   'use strict';
 
-  var VERSION = '1.1.0';
+  var VERSION = '1.2.0';
   var STORE_KEY = 'il.cksPaper.v1';
   var SRC = 'cks-paper';
   var HINT_CREDIT = TS ? TS.HINT_CREDIT : 0.5;
   /* The CKS passing score is 67% (Linux Foundation candidate handbook); this bar mirrors it as a study bar, not a CNCF result. */
   var DEFAULTS = { count: 6, minutes: 36, passPct: 67 };
-  var HONESTY = 'Timed hands-on CKS paper in a SIMULATED shell over in-browser 3D drills (rules engine, computed output). Not a live cluster, not killer.sh, not the CNCF CKS. Falco, AppArmor, kube-bench, kubesec, KubeLinter, Trivy, cosign and gVisor are rules-engine stand-ins — a study signal, not a predicted exam score. Names, ports, registry and tags are re-drawn per paper seed (surface variants over the same staged faults).';
+  var HONESTY = 'Timed hands-on CKS paper in a SIMULATED shell over in-browser 3D drills (rules engine, computed output). Not a live cluster, not killer.sh, not the CNCF CKS. Falco, AppArmor, kube-bench, kubesec, KubeLinter, Trivy, cosign and gVisor are rules-engine stand-ins — a study signal, not a predicted exam score. Names, ports, registry and tags are re-drawn per paper seed; the three kube-bench tasks also draw a seeded fault variant (which node — controlplane or node01 over ssh — and which kubelet / API server settings are broken), from 7 authored faults.';
 
   /**
    * The six official CNCF CKS domains (curriculum v1.34 weights, identical to ILImmersiveExam.CKS_BLUEPRINT).
@@ -170,6 +182,42 @@
     'cks-falco-silent': ['payments'], 'cks-falco-contain': ['payments']
   };
 
+  /**
+   * v1.2.0 fault variants: incident id → alternative staged faults. [0] is the canonical (v1.0.0) fault; each entry names its
+   * own CLI task (setup + steps), its own ticket and the tokens it varies. Tickets name hosts, files and what to prove —
+   * never the commands (unit-tested like the bank tickets).
+   */
+  var HOSTS_NOTE = 'Hosts controlplane and node01 (a worker; reach it with ssh node01). ';
+  var FAULTS = {
+    'cks-bench-kubelet': [
+      { id: 'cp-anon-alwaysallow', taskId: 'kubelet-auth', host: 'controlplane', label: 'controlplane kubelet: anonymous auth on + AlwaysAllow', vary: [] },
+      { id: 'w1-anon-alwaysallow', taskId: 'worker-kubelet', host: 'node01', label: 'node01 kubelet: anonymous auth on + AlwaysAllow (controlplane clean)', vary: ['node01'],
+        ticket: HOSTS_NOTE + 'kube-bench node checks 4.2.1 and 4.2.2 FAIL on one node only. Show that controlplane passes, prove from controlplane that node01\'s kubelet API on 10250 answers an anonymous request, show the failing checks on node01, fix node01\'s own /var/lib/kubelet/config.yaml (anonymous auth off, authorization through the API server), make node01\'s kubelet pick it up, prove the anonymous request is refused, and re-run only those two checks on node01.' },
+      { id: 'w1-token-alwaysallow', taskId: 'worker-authz', host: 'node01', label: 'node01 kubelet: anonymous off, but AlwaysAllow (any ServiceAccount token gets in)', vary: ['node01'],
+        ticket: HOSTS_NOTE + 'node01 refuses anonymous kubelet requests, yet kube-bench on node01 still reports a FAIL. Find which check, prove anonymous is refused but a ServiceAccount token ($TOKEN) still lists node01\'s pods on 10250, make node01\'s kubelet authorize through the API server, have it pick up the change, prove the same token is now forbidden, and re-run that check on node01.' }
+    ],
+    'cks-bench-readonly': [
+      { id: 'cp-readonly', taskId: 'readonly-port', host: 'controlplane', label: 'controlplane kubelet: read-only port 10255 open', vary: [] },
+      { id: 'w1-readonly', taskId: 'worker-readonly', host: 'node01', label: 'node01 kubelet: read-only port 10255 open (controlplane closed)', vary: ['node01'],
+        ticket: HOSTS_NOTE + 'One kubelet still serves pod data on its unauthenticated read-only port. Prove from controlplane that node01 leaks and controlplane does not, show how kube-bench on node01 classifies check 4.2.4, close the port in node01\'s kubelet config, apply it on node01, and prove node01\'s port refuses connections.' }
+    ],
+    'cks-bench-control-plane': [
+      { id: 'cp-etcd-profiling', taskId: 'control-plane', host: 'controlplane', label: 'controlplane: etcd data dir 755 + API server profiling on', vary: [] },
+      { id: 'split-profiling-anon', taskId: 'split-hardening', host: 'both', label: 'one finding per node: API server profiling on controlplane + anonymous kubelet auth on node01', vary: ['node01'],
+        ticket: HOSTS_NOTE + 'kube-bench FAILs on both nodes: master check 1.2.15 (API server profiling) on controlplane, node check 4.2.1 (kubelet anonymous auth) on node01, whose kubelet already authorizes through the API server. Show each finding on its own node, turn profiling off in the kube-apiserver static-pod manifest, prove from controlplane how node01 answers an anonymous request before and after you turn anonymous auth off in node01\'s kubelet config and apply it, and re-run each check to PASS on its own node.' }
+    ]
+  };
+  var FAULT_BY_ID = {};
+  Object.keys(FAULTS).forEach(function (k) { FAULTS[k].forEach(function (f) { FAULT_BY_ID[f.id] = f; }); });
+  POOLS['node01'] = ['compute-03', 'wk-east-2', 'k8s-w7'];
+  /** Deterministic fault for (paper seed, incident id): its own PRNG stream ('#fault'), so task and name draws are unchanged. */
+  function faultFor(id, seed) {
+    var list = FAULTS[id];
+    if (!list || !list.length) return null;
+    var rnd = mulberry32(((seed >>> 0) ^ hashStr(id + '#fault')) >>> 0);
+    return list[Math.floor(rnd() * list.length)];
+  }
+
   function reEsc(t) { return String(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
   /**
    * swapper(pairs) → fn(text): swaps every whole-word occurrence of a or b for the other (pairs = [[canonical, variant], …]).
@@ -191,9 +239,11 @@
     };
   }
   function hashStr(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
-  /** Deterministic variant for (paper seed, task id): its own PRNG stream, so the task draw is unchanged from v1.0.0. */
-  function variantFor(id, seed) {
-    var toks = VARY[id] || [];
+  /** Deterministic variant for (paper seed, task id): its own PRNG stream, so the task draw is unchanged from v1.0.0.
+   *  v1.2.0: faultId (optional) = the drawn fault; its own `vary` list replaces the incident's. */
+  function variantFor(id, seed, faultId) {
+    var fl = faultId ? FAULT_BY_ID[faultId] : null;
+    var toks = fl ? fl.vary : (VARY[id] || []);
     var rnd = mulberry32(((seed >>> 0) ^ hashStr(id)) >>> 0);
     var pairs = toks.map(function (t) { var pool = POOLS[t]; return [t, pool[Math.floor(rnd() * pool.length)]]; });
     return { pairs: pairs, label: pairs.map(function (p) { return p[0] + '→' + p[1]; }).join(', ') };
@@ -206,6 +256,11 @@
   function shuffle(arr, rnd) {
     for (var i = arr.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)); var t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
     return arr;
+  }
+
+  /** Faults of an incident whose CLI task exists in the loaded packs (canonical first). */
+  function faultsOf(id, C) {
+    return (FAULTS[id] || []).filter(function (f) { return !C || !C.task || !!C.task(BY_ID[id].simId, f.taskId); });
   }
 
   /** Tasks whose CLI task exists in the loaded packs (C = ILImmersiveCLI); bank order. */
@@ -241,17 +296,29 @@
     shuffle(picked, rnd); /* the real exam does not group tasks by domain either */
     var startedAt = opts.now != null ? opts.now : Date.now();
     var variants = opts.variants !== false;
+    var faults = variants && opts.faults !== false;
     return {
       version: VERSION, kind: 'cks', seed: seed, minutes: minutes,
       passPct: opts.passPct != null ? opts.passPct : DEFAULTS.passPct,
       startedAt: startedAt, endsAt: startedAt + minutes * 60 * 1000,
       variants: variants,
+      faults: faults,
       incidents: picked.map(function (x, i) {
-        var tk = C && C.task ? C.task(x.simId, x.taskId) : null;
-        var v = variants ? variantFor(x.id, seed) : null, sw = swapper(v ? v.pairs : null);
-        return { i: i, id: x.id, area: x.area, areaLabel: AREAS[x.area].label + ' · ' + AREAS[x.area].weight + '%', cka: true, simId: x.simId, taskId: x.taskId,
-          pre: x.pre, ticket: sw(x.ticket), title: sw(tk ? tk.title : x.id), steps: tk ? tk.steps.length : null,
-          variant: v && v.pairs.length ? v : null, result: null };
+        /* v1.2.0: draw the fault first (own stream), then the names it varies */
+        var fl = null;
+        if (faults) {
+          var avail = faultsOf(x.id, C);
+          var drawn = faultFor(x.id, seed);
+          fl = drawn && avail.indexOf(drawn) >= 0 ? drawn : null;
+        }
+        var taskId = fl ? fl.taskId : x.taskId;
+        var tk = C && C.task ? C.task(x.simId, taskId) : null;
+        var v = variants ? variantFor(x.id, seed, fl ? fl.id : null) : null, sw = swapper(v ? v.pairs : null);
+        return { i: i, id: x.id, area: x.area, areaLabel: AREAS[x.area].label + ' · ' + AREAS[x.area].weight + '%', cka: true, simId: x.simId, taskId: taskId,
+          pre: x.pre, ticket: sw(fl && fl.ticket ? fl.ticket : x.ticket), title: sw(tk ? tk.title : x.id), steps: tk ? tk.steps.length : null,
+          variant: v && v.pairs.length ? v : null,
+          fault: fl ? { id: fl.id, label: sw(fl.label), host: fl.host, canonical: fl === FAULTS[x.id][0] } : null,
+          result: null };
       }),
       honesty: HONESTY
     };
@@ -267,6 +334,7 @@
       r.feedback = sw(r.feedback);
       r.variant = inc.variant.label;
     }
+    if (inc && inc.fault) r.fault = inc.fault.label;
     return r;
   }
 
@@ -324,7 +392,8 @@
     var db = loadStore();
     var list = db.attempts || (db.attempts = []);
     list.unshift({ at: Date.now(), seed: paper.seed, incidents: summary.incidents, resolved: summary.resolved, pct: summary.pct, rawPct: summary.rawPct,
-      coveragePct: summary.coveragePct, passed: summary.passed, minutes: paper.minutes, variants: paper.variants !== false, weakest: summary.weakest ? summary.weakest.area : null });
+      coveragePct: summary.coveragePct, passed: summary.passed, minutes: paper.minutes, variants: paper.variants !== false,
+      faults: (paper.incidents || []).filter(function (x) { return x.fault; }).map(function (x) { return x.id + ':' + x.fault.id; }), weakest: summary.weakest ? summary.weakest.area : null });
     if (list.length > 20) list.length = 20;
     db.last = list[0];
     saveStore(db);
@@ -377,6 +446,7 @@
   return {
     VERSION: VERSION, STORE_KEY: STORE_KEY, SRC: SRC, HINT_CREDIT: HINT_CREDIT, DEFAULTS: DEFAULTS, HONESTY: HONESTY, honesty: HONESTY,
     AREAS: AREAS, AREA_ORDER: AREA_ORDER, ANCHOR: ANCHOR, INCIDENTS: INCIDENTS, POOLS: POOLS, VARY: VARY, swapper: swapper, variantFor: variantFor, get: function (id) { return BY_ID[id] || null; },
+    FAULTS: FAULTS, faultFor: faultFor, faultsOf: faultsOf, fault: function (id) { return FAULT_BY_ID[id] || null; },
     bank: bank, buildPaper: buildPaper, gradeIncident: gradeIncident, summarize: summarize,
     loadStore: loadStore, recordAttempt: recordAttempt, remediate: remediate, stage: stage, mulberry32: mulberry32, ui: ui
   };

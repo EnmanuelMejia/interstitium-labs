@@ -44,7 +44,7 @@ function glbJson(rel) {
 
 test('NEW asset: cks-sandbox-runtime.glb is authored + Blender-polished, the sixth CKS scene; sim-* nodes hidden when healthy', () => {
   const sim = S.get(SIM);
-  assert.equal(S.VERSION, '1.12.0');
+  assert.ok(['1.12.0', '1.13.0'].includes(S.VERSION), 'cks-sandbox-runtime arrived in v1.12.0; v1.13.0 (2026-11-11) keeps it');
   assert.equal(sim.cert, 'CKS');
   assert.equal(sim.glb, '/assets/immersive/cks-sandbox-runtime.glb');
   assert.ok(!S.list().filter(id => id !== SIM).map(id => S.get(id).glb).includes(sim.glb), 'a new asset, not a re-read of an existing scene');

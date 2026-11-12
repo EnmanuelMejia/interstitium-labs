@@ -1,5 +1,5 @@
 /**
- * IL Immersive Sims v1.12.0 (2026-11-06; v1.11.0 2026-11-05; v1.10.0 2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
+ * IL Immersive Sims v1.13.0 (2026-11-11; v1.12.0 2026-11-06; v1.11.0 2026-11-05; v1.10.0 2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-23; v1.5.0 2026-10-22; v1.4.0 2026-10-21; v1.3.0 2026-10-19; v1.2.0 2026-10-08; v1.1.0 2026-10-07; v1.0.0 2026-10-06) — interactive state machines that drive authored .glb scenes.
  *
  * State changes the scene: each sim derives per-node styles (tint / glow / pulse / hide / reveal)
  * from a small state object using the documented rules (Raft quorum, AWS Multi-AZ failover,
@@ -71,6 +71,12 @@
  * without scheduling.nodeSelector lets the scheduler pick a node that has no runsc, overhead.podFixed is counted by the
  * scheduler, a host-kernel bug is an escape under runc but not through gVisor's Sentry, and uname -r / dmesg show which kernel
  * a pod really got.
+ *
+ * v1.13.0 (2026-11-11): cks-cluster-hardening goes multi-node. node01, a worker with its OWN kubelet (w1* state: anonymous
+ * auth, authorization mode, readOnlyPort, restart + running snapshot), gets the same documented kubelet rules and its own
+ * bay in the re-authored, Blender-polished cks-cluster-hardening.glb (w1-* nodes). Only the node checks (4.2.x) apply to a
+ * worker; kube-bench audits only the node it runs on, so a clean controlplane report says nothing about node01 (the
+ * controlplane report pad turns warn while node01 still fails). Same honest scope: no live cluster, no real kubelet.
  *
  * Node naming contract (scripts/author_immersive_glb.py):
  *   sim-*      hidden unless a rule sets show:true
@@ -1950,6 +1956,29 @@
     { id: '4.2.2', target: 'node', key: 'webhookAuthz', manual: false, text: 'Ensure that the --authorization-mode argument is not set to AlwaysAllow (Automated)' },
     { id: '4.2.4', target: 'node', key: 'roPortClosed', manual: true, text: 'Verify that if defined, the --read-only-port argument is set to 0 (Manual)' }
   ];
+  /**
+   * v1.13.0 (2026-11-11): node01, a worker with its OWN kubelet (w1* state keys: w1AnonOff, w1WebhookAuthz, w1RoPortClosed,
+   * w1KubeletRestarted + w1Run* snapshots). Same documented rules as the controlplane kubelet; only the node checks (4.2.x)
+   * apply there (no API server, no etcd on a worker). kube-bench audits only the node it runs on.
+   */
+  function cksW1Decide(s) {
+    var restarted = s.w1KubeletRestarted !== false;
+    var file = { anonOff: s.w1AnonOff !== false, webhookAuthz: s.w1WebhookAuthz !== false, roPortClosed: s.w1RoPortClosed !== false };
+    var run = restarted ? file : { anonOff: !!s.w1RunAnonOff, webhookAuthz: !!s.w1RunWebhookAuthz, roPortClosed: !!s.w1RunRoClosed };
+    var token = !!s.probeToken;
+    var user = token ? 'system:serviceaccount:default:default' : (run.anonOff ? null : 'system:anonymous');
+    var code = !user ? 401 : (run.webhookAuthz ? 403 : 200);
+    var bench = CH_CHECKS.filter(function (c) { return c.target === 'node'; }).map(function (c) {
+      return { id: c.id, target: c.target, text: c.text, result: file[c.key] ? 'PASS' : (c.manual ? 'WARN' : 'FAIL') };
+    });
+    var fails = bench.filter(function (b) { return b.result !== 'PASS'; });
+    var stale = !restarted && (run.anonOff !== file.anonOff || run.webhookAuthz !== file.webhookAuthz || run.roPortClosed !== file.roPortClosed);
+    return {
+      host: 'node01', file: file, running: run, restarted: restarted, stale: stale, user: user, kubeletCode: code,
+      kubeletMsg: code === 401 ? 'Unauthorized' : (code === 403 ? 'Forbidden (user=' + user + ', verb=get, resource=nodes, subresource=proxy)' : '200 OK (PodList)'),
+      roOpen: !run.roPortClosed, bench: bench, fails: fails, allPass: !fails.length
+    };
+  }
   function cksHardenDecide(s) {
     var restarted = s.kubeletRestarted !== false;
     /* Not restarted: the process still runs the config it read at start (runAnonOff/runWebhookAuthz/runRoClosed, snapshotted
@@ -1962,12 +1991,18 @@
     var fails = bench.filter(function (b) { return b.result !== 'PASS'; });
     var stale = !restarted && (run.anonOff !== !!s.anonOff || run.webhookAuthz !== !!s.webhookAuthz || run.roPortClosed !== !!s.roPortClosed);
     var probe = !!s.probe;
+    var w1 = cksW1Decide(s);
     var exposures = [];
     if (probe && kubeletCode === 200) exposures.push('kubelet-api-open');
     if (probe && !run.roPortClosed) exposures.push('readonly-port-leak');
+    if (probe && w1.kubeletCode === 200) exposures.push('node01-kubelet-api-open');
+    if (probe && w1.roOpen) exposures.push('node01-readonly-port-leak');
     var gaps = fails.map(function (b) { return 'CIS ' + b.id + ' ' + b.result; });
     if (stale) gaps.push('kubelet not restarted: running config ≠ config.yaml');
+    w1.fails.forEach(function (b) { gaps.push('node01 CIS ' + b.id + ' ' + b.result); });
+    if (w1.stale) gaps.push('node01 kubelet not restarted');
     return {
+      w1: w1,
       running: run,
       restarted: restarted,
       stale: stale,
@@ -1977,7 +2012,8 @@
       roOpen: !run.roPortClosed,
       bench: bench,
       fails: fails,
-      allPass: !fails.length,
+      allPass: !fails.length && w1.allPass,
+      cpAllPass: !fails.length,
       gaps: gaps,
       exposures: exposures
     };
@@ -1988,7 +2024,8 @@
     title: 'CKS cluster setup drill: CIS benchmark with kube-bench — kubelet anonymous auth, AlwaysAllow vs Webhook, read-only port, restart after config edits, etcd data dir permissions, API server profiling',
     cert: 'CKS',
     glb: '/assets/immersive/cks-cluster-hardening.glb',
-    initial: { anonOff: true, webhookAuthz: true, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: false, probeToken: false },
+    initial: { anonOff: true, webhookAuthz: true, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: false, probeToken: false,
+      w1AnonOff: true, w1WebhookAuthz: true, w1RoPortClosed: true, w1KubeletRestarted: true },
     toggles: [
       { id: 'anonOff', label: 'kubelet authentication.anonymous.enabled', on: 'false', off: 'true' },
       { id: 'webhookAuthz', label: 'kubelet authorization.mode', on: 'Webhook', off: 'AlwaysAllow' },
@@ -1997,7 +2034,10 @@
       { id: 'etcdLocked', label: '/var/lib/etcd mode', on: '700', off: '755' },
       { id: 'profilingOff', label: 'kube-apiserver --profiling', on: 'false', off: 'true' },
       { id: 'probe', label: 'compromised pod probing node ports', on: 'probing', off: 'quiet' },
-      { id: 'probeToken', label: 'probe credential', on: 'its ServiceAccount token', off: 'none (anonymous)' }
+      { id: 'probeToken', label: 'probe credential', on: 'its ServiceAccount token', off: 'none (anonymous)' },
+      { id: 'w1AnonOff', label: 'node01 kubelet anonymous.enabled', on: 'false', off: 'true' },
+      { id: 'w1WebhookAuthz', label: 'node01 kubelet authorization.mode', on: 'Webhook', off: 'AlwaysAllow' },
+      { id: 'w1RoPortClosed', label: 'node01 kubelet readOnlyPort', on: '0', off: '10255' }
     ],
     scenarios: [
       { id: 'anon-alwaysallow', label: 'Anonymous + AlwaysAllow', set: { anonOff: false, webhookAuthz: false, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: true, probeToken: false },
@@ -2042,7 +2082,8 @@
             'A PodList. The kubelet authenticates the token with a TokenReview (webhook authentication), so the request is system:serviceaccount:default:default, and AlwaysAllow lets any authenticated user do anything, including /exec. Turning anonymous auth off is not enough; set authorization.mode: Webhook (CIS 4.2.2)',
             '403 Forbidden, because ServiceAccount tokens are only valid against the API server'],
           answer: 1, why: 'With authentication.webhook.enabled the kubelet validates bearer tokens through the API server (TokenReview), so any ServiceAccount token from any pod authenticates. Authorization is the step that should stop it, and AlwaysAllow does not. That is why CIS has two separate checks: 4.2.1 removes anonymous access and 4.2.2 makes every authenticated request go through a SubjectAccessReview against RBAC, where a default ServiceAccount has no nodes/proxy permission (403 Forbidden).' } },
-      { id: 'heal', label: 'Reset', set: { anonOff: true, webhookAuthz: true, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: false, probeToken: false } }
+      { id: 'heal', label: 'Reset', set: { anonOff: true, webhookAuthz: true, roPortClosed: true, kubeletRestarted: true, etcdLocked: true, profilingOff: true, probe: false, probeToken: false,
+        w1AnonOff: true, w1WebhookAuthz: true, w1RoPortClosed: true, w1KubeletRestarted: true } }
     ],
     derive: function (s) {
       var d = cksHardenDecide(s), rules = [];
@@ -2062,9 +2103,26 @@
       rules.push(rule('^sim-etcd-open$', !s.etcdLocked ? { show: true, tint: 'deny', glow: 0.7, pulse: true } : { hide: true }));
       rules.push(rule('^apiserver-manifest$', s.profilingOff ? { tint: 'ok', glow: 0.3 } : { tint: 'warn', glow: 0.5 }));
       rules.push(rule('^sim-profiling-on$', !s.profilingOff ? { show: true, tint: 'deny', glow: 0.7, pulse: true } : { hide: true }));
-      rules.push(rule('^(kube-bench|bench-report)$', d.allPass ? { tint: 'gold', glow: 0.4 } : { tint: 'warn', glow: 0.55 }));
-      rules.push(rule('^sim-bench-fail$', !d.allPass ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
-      rules.push(rule('^sim-bench-pass$', d.allPass && (d.stale || s.probe) ? { show: true, tint: d.stale ? 'warn' : 'ok', glow: 0.6 } : { hide: true }));
+      rules.push(rule('^(kube-bench|bench-report)$', d.cpAllPass ? { tint: 'gold', glow: 0.4 } : { tint: 'warn', glow: 0.55 }));
+      rules.push(rule('^sim-bench-fail$', !d.cpAllPass ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^sim-bench-pass$', d.cpAllPass && (d.stale || s.probe || !d.w1.allPass) ? { show: true, tint: d.stale || !d.w1.allPass ? 'warn' : 'ok', glow: 0.6 } : { hide: true }));
+      /* v1.13.0: node01 (worker) bay — its own kubelet, gates, ports and kube-bench run */
+      var w = d.w1;
+      rules.push(rule('^w1-kubelet$', w.kubeletCode === 200 ? { tint: 'deny', glow: 0.6, pulse: probe } : (w.stale ? { tint: 'warn', glow: 0.5, pulse: true } : { tint: 'ok', glow: 0.45 })));
+      rules.push(rule('^w1-kubelet-config$', w.stale ? { tint: 'warn', glow: 0.5 } : (w.allPass ? { tint: 'ok', glow: 0.3 } : { tint: 'deny', glow: 0.4 })));
+      rules.push(rule('^sim-w1-stale-config$', w.stale ? { show: true, tint: 'warn', glow: 0.7, pulse: true } : { hide: true }));
+      rules.push(rule('^w1-authn-gate$', w.running.anonOff ? { tint: 'ok', glow: 0.5 } : { tint: 'warn', glow: 0.25 }));
+      rules.push(rule('^w1-authz-gate$', w.running.webhookAuthz ? { tint: 'ok', glow: 0.5 } : { tint: 'deny', glow: 0.3 }));
+      rules.push(rule('^w1-port-10250$', w.kubeletCode === 200 ? { tint: 'deny', glow: 0.6 } : { tint: 'ok', glow: 0.35 }));
+      rules.push(rule('^sim-w1-kubelet-open$', probe && w.kubeletCode === 200 ? { show: true, tint: 'deny', glow: 0.9, pulse: true } : { hide: true }));
+      rules.push(rule('^sim-w1-kubelet-denied$', probe && w.kubeletCode !== 200 ? { show: true, tint: 'ok', glow: 0.7 } : { hide: true }));
+      rules.push(rule('^w1-port-10255$', w.roOpen ? { tint: 'deny', glow: 0.5 } : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^sim-w1-ro-port-open$', w.roOpen ? { show: true, tint: 'deny', glow: 0.8, pulse: probe } : { hide: true }));
+      rules.push(rule('^w1-kube-bench$', w.allPass ? { tint: 'gold', glow: 0.4 } : { tint: 'warn', glow: 0.55 }));
+      rules.push(rule('^sim-w1-bench-fail$', !w.allPass ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
+      rules.push(rule('^edge-probe-w1$', probe ? (w.kubeletCode === 200 || w.roOpen ? { tint: 'deny', glow: 0.8, pulse: true } : { tint: 'warn', glow: 0.4 }) : { tint: 'muted', glow: 0.05 }));
+      rules.push(rule('^(edge-ssh-w1|edge-bench-w1)$', { tint: 'gold', glow: 0.25 }));
+      rules.push(rule('^(w1-node|w1-floor)$', { tint: 'muted', glow: 0.05 }));
       rules.push(rule('^(edge-bench-api|edge-bench-etcd|edge-bench-kubelet)$', { tint: 'gold', glow: 0.25 }));
       rules.push(rule('^attacker-pod$', probe ? { tint: 'deny', glow: 0.5 } : { tint: 'muted', glow: 0.05 }));
       rules.push(rule('^sim-attacker-probe$', probe ? { show: true, tint: 'deny', glow: 0.8, pulse: true } : { hide: true }));
@@ -2074,11 +2132,14 @@
       rules.push(rule('^(cp-node|pod-network)$', { tint: 'muted', glow: 0.05 }));
       var verdict = d.exposures.length ? 'exposed' : (d.gaps.length ? 'degraded' : 'healthy');
       var cap = [];
-      cap.push('kube-bench: ' + (d.allPass ? 'every modelled check PASS' : d.fails.map(function (b) { return '[' + b.result + '] ' + b.id; }).join(' ')));
+      cap.push('kube-bench: ' + (d.cpAllPass ? 'every modelled check PASS' : d.fails.map(function (b) { return '[' + b.result + '] ' + b.id; }).join(' ')));
+      if (!d.w1.allPass) cap.push('kube-bench on node01: ' + d.w1.fails.map(function (b) { return '[' + b.result + '] ' + b.id; }).join(' '));
       if (d.stale) cap.push('config.yaml edited, kubelet not restarted: running config is the old one');
+      if (d.w1.stale) cap.push('node01 config.yaml edited, its kubelet not restarted');
       if (probe) {
         cap.push(':10250 ' + (s.probeToken ? 'with SA token' : 'anonymous') + ' → ' + d.kubeletMsg);
         cap.push(':10255 → ' + (d.roOpen ? 'PodList over HTTP, no auth' : 'connection refused'));
+        if (d.w1.kubeletCode === 200 || d.w1.roOpen || !d.w1.allPass) cap.push('node01:10250 → ' + d.w1.kubeletMsg + ' · node01:10255 → ' + (d.w1.roOpen ? 'PodList over HTTP' : 'refused'));
       }
       return { verdict: verdict, metrics: d, caption: cap.join(' · '), rules: rules };
     }
@@ -2474,7 +2535,7 @@
   }
 
   return {
-    VERSION: '1.12.0',
+    VERSION: '1.13.0',
     TINTS: TINTS,
     VERDICT_TONE: VERDICT_TONE,
     verdictTone: verdictTone,
@@ -2508,6 +2569,7 @@
     SC_DIGEST: SC_DIGEST,
     cksRuntimeDecide: cksRuntimeDecide,
     cksHardenDecide: cksHardenDecide,
+    cksW1Decide: cksW1Decide,
     cksStaticDecide: cksStaticDecide,
     cksSandboxDecide: cksSandboxDecide,
     SA_POS: SA_POS,

@@ -45,7 +45,7 @@ function terminal(inc, pairs) {
 }
 
 test('v1.1.0 pools: every task has a VARY entry, pools are disjoint, never canonical, and never a word anywhere in the CLI packs or sims', () => {
-  assert.equal(K.VERSION, '1.1.0');
+  assert.match(K.VERSION, /^1\.[12]\.0$/, 'name variants since v1.1.0; v1.2.0 (2026-11-11) adds fault variants');
   assert.deepEqual(Object.keys(K.VARY).sort(), K.INCIDENTS.map((x) => x.id).sort());
   const canon = Object.keys(K.POOLS), seen = new Set();
   for (const [c, pool] of Object.entries(K.POOLS)) {
@@ -171,7 +171,7 @@ test('wiring: player v1.14.0 swaps the CLI boundary, boot passes cliExam.swap, p
   assert.match(boot, /variants=0/);
   const page = readFileSync(path.join(root, 'docs/immersive/cks/index.html'), 'utf8');
   assert.match(page, /data-il-ts-variants checked/);
-  assert.match(page, /surface variants over the same staged faults/);
+  assert.match(page, /surface variants over the same staged fault/);
   const m = JSON.parse(readFileSync(path.join(root, 'docs/assets/scenes/manifest.json'), 'utf8'));
   assert.equal(m.cks_paper.variants.version, '1.1.0');
   assert.equal(m.cks_paper.variants.varied_tasks, 21);

@@ -44,7 +44,7 @@ function glbJson(rel) {
 
 test('NEW asset: cks-cluster-hardening.glb is authored + Blender-polished, the fourth CKS scene; sim-* nodes hidden when secure', () => {
   const sim = S.get(SIM);
-  assert.ok(['1.10.0', '1.11.0', '1.12.0'].includes(S.VERSION), 'cks-cluster-hardening arrived in v1.10.0; v1.11.0 (2026-11-05) keeps it');
+  assert.ok(['1.10.0', '1.11.0', '1.12.0', '1.13.0'].includes(S.VERSION), 'cks-cluster-hardening arrived in v1.10.0; v1.11.0 (2026-11-05) keeps it');
   assert.equal(sim.cert, 'CKS');
   assert.equal(sim.glb, '/assets/immersive/cks-cluster-hardening.glb');
   assert.ok(!S.list().filter(id => id !== SIM).map(id => S.get(id).glb).includes(sim.glb), 'a new asset, not a re-read of an existing scene');
@@ -224,7 +224,7 @@ test('CKS paper: Cluster Setup links to the CIS drill, pool +7 (36)', () => {
 test('review: CIS coach cards get an honest CKS label; CKA mastery stays CKA-only', () => {
   assert.match(R.VERSION, /^1\.(3\.[456]|4\.0)$/);
   const cards = R.cliCheckpoints(C, S).filter(c => c.simId === SIM);
-  assert.equal(cards.length, 18);
+  assert.equal(cards.length, 48, '18 on 2026-11-04; +30 multi-node steps on 2026-11-11');
   assert.ok(cards.every(c => c.domain === 'CKS · Cluster setup (CIS benchmark)'));
   assert.ok(!R.checkpoints(S).some(c => c.simId === SIM));
 });
@@ -249,7 +249,7 @@ test('wiring: /immersive/ host, exam lobby copy, curriculum rows, manifest (new 
   }
   const m = JSON.parse(readFileSync(path.join(root, 'docs/assets/scenes/manifest.json'), 'utf8'));
   const sc = m.scenes.find(x => x.sim === SIM);
-  assert.deepEqual([sc.gltf, sc.cert, sc.polish, sc.polishedOn], [S.get(SIM).glb, 'CKS', 'blender-cli', '2026-11-04']);
+  assert.deepEqual([sc.gltf, sc.cert, sc.polish, sc.polishedOn], [S.get(SIM).glb, 'CKS', 'blender-cli', '2026-11-11'], 'authored 2026-11-04, re-authored + re-polished 2026-11-11 (node01 bay)');
   assert.ok(m.sims.list.includes(SIM));
   assert.ok(!m.cka_coverage.interactive.includes(SIM), 'not counted as CKA coverage');
   assert.deepEqual(m.cks_coverage.interactive.slice(0, 4), ['cks-pod-security', 'cks-supply-chain', 'cks-runtime-security', SIM]);
@@ -260,7 +260,7 @@ test('wiring: /immersive/ host, exam lobby copy, curriculum rows, manifest (new 
   assert.equal(m.sims.runtime_version, S.VERSION);
   assert.equal(m.sims.exam.version, E.VERSION);
   assert.equal(m.sims.cli.version, C.VERSION);
-  assert.deepEqual(m.sims.cli.packs.find(p => p.sim === SIM).tasks, ['kubelet-auth', 'control-plane', 'readonly-port']);
+  assert.deepEqual(m.sims.cli.packs.find(p => p.sim === SIM).tasks, ['kubelet-auth', 'control-plane', 'readonly-port', 'worker-kubelet', 'worker-authz', 'worker-readonly', 'split-hardening']);
   assert.match(m.sims.cli.hardeningNote, /No live cluster, no real kube-bench, kubelet, etcd or systemd, no clock/);
 });
 
