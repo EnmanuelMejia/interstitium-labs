@@ -1,7 +1,45 @@
 # Musk bar — recursive scorecard
 
-_Last updated: 2026-11-11 ~morning EST (America/New_York)._  
+_Last updated: 2026-11-13 ~morning EST (America/New_York)._  
 _Live:_ https://interstitiumlabs.dev
+
+## Verdict — 2026-11-13 Musk-bar pass
+
+| Checkpoint | Impressed? | Why |
+|---|:---:|---|
+| Recursive question | Asked | Would Elon be impressed by THIS mediocrity? **Every CKS paper task was already sitting on the right cluster.** On the real CKS each task names a kubectl context, and work typed on the previous task's cluster scores zero. That is the most-quoted way people lose points. KodeKloud's CKS mocks run on several clusters, killer.sh puts each question on a named cluster, and even free drill sites start you on the wrong context on purpose. Our paper had one implicit cluster per task, so the habit was never trained. |
+| After this ship | **Closer / still NO** | **Kubeconfig contexts on the CKS paper** (`il-immersive-cks-paper.js` v1.3.0, `il-immersive-cli.js` v1.14.0, `il-immersive-3d.js` v1.15.0). Every scene on a paper is its own cluster with a seeded context name (10 authored names, own PRNG stream, so the task, name and fault draws are unchanged), plus a **decoy context no task uses**. The task panel names the context the way the exam does. The first task starts on the decoy, and every later task starts wherever the previous one left the shell. `kubectl config get-contexts / current-context / use-context / view` work, `--context NAME` applies to one command only, and kubectl on any other context reaches an **empty stand-in cluster**: lists are empty, named objects and namespaces are NotFound, writes are refused, `get nodes` shows that cluster's own nodes, and nothing reaches the task. **3D:** the authored glTF *is* the task's cluster, so while kubectl points elsewhere the WebGL scene is drawn desaturated and dimmed (also in WebXR). It lights back up over about 0.6 s after `use-context`. The results screen reports, per task, whether you switched before your first kubectl command and how many kubectl commands hit another cluster. Attempts store the count. |
+| Fake YES risk | Rejected | The other contexts are **empty stand-ins, not modelled clusters**. Switching is **not a scored checkpoint**: as on the exam, the cost of forgetting is that the work lands elsewhere. Only kubectl depends on the context. **17 of the 28 paper task variants** use kubectl. The 11 that do not (the 7 kube-bench tasks and 4 CI-runner tasks: scan-gate, sbom, kubesec-gate, kube-linter) are unaffected, and ssh hosts are not tied to a context. The scene dim is a study cue the real exam does not give. `kubectl config set-context` and namespace defaults are not modelled. No new `.glb`, pack or task (21 packs / 69 tasks / 383 steps; the CKS exam pool stays 50). |
+
+**Musk YES? NO — Closer.** The blockers are unchanged: **(B) a live UE Pixel Streaming host** and **(C) a hosted lab fleet / real cluster sandbox**. Next cheapest wins:
+- bind ssh hosts to contexts too (each cluster's controlplane/node names), so the kube-bench tasks also need the right cluster, and a per-task ssh-host mode for exam versions that use one host per task
+- Kata Containers as a second handler on the sandbox scene, plus keyless (Sigstore OIDC) cosign signing and Dockerfile linting (hadolint), the remaining Microservice / Supply Chain gaps
+- fault variants for the other CKS domains (a second Falco rule fault, a second NetworkPolicy fault), so the 21 name-varied tasks also change their staged fault
+- Dependabot: `better-auth` in `apps/practice` (1 critical, 1 high, 1 low; fix is 1.7.7+) needs a migration, because 1.7 drops the `genericOAuthClient` / `signInWithOAuth2` APIs the vendored auth files use (checked this pass with `tsc`). It was not bumped blind.
+- syncing the Notion Labs rows for the CKS drills and the CKS paper (Notion untouched by these passes)
+
+## Competitor benchmark (2026-11-13)
+
+| Competitor | Multi-cluster / context discipline | Interstitium after this pass |
+|---|---|---|
+| KodeKloud | Ultimate CKS Mock Exam Series: several isolated clusters (main, control-plane focused, policy and runtime), you start on a student node and connect to other clusters and nodes, 16 tasks, 2 h, automated weighted scoring | Seeded context per scene + a decoy, carried across tasks, with wrong-context kubectl verifying nothing. Free, in-browser, on authored 3D stages. The clusters are simulated and the other contexts are empty stand-ins. |
+| killer.sh | Each question names its cluster. A 2025 candidate write-up notes the simulator has you ssh to cluster instances, while the real exam uses `kubectl config use-context` | Context switching like the exam write-ups describe, plus ssh to named nodes (from 2026-11-11). Not real clusters, and a smaller bank. |
+| Drill sites (for example OnCallReady's CKA drilling chapter) | Start each round in the wrong context on purpose | Same trap, plus a per-task results line, a scene that dims while you are off-context, and seeded names and faults |
+| A Cloud Guru / Pluralsight, Udemy CKS courses | Video paths with labs or practice tests | Performance-based, timed, multi-context paper on authored 3D stages. Not re-verified this run. |
+
+_The KodeKloud facts were read from the KodeKloud course page and course notes during this pass. The killer.sh and real-exam context facts come from public candidate write-ups (sakisv.net 2025, School of Web CKS #19 and #20) and OnCallReady. They are not Linux Foundation statements, and some newer exam versions are reported to use a per-task ssh host instead of contexts._
+
+## Shipped this pass (2026-11-13)
+
+1. `il-immersive-cli.js` v1.14.0: `kubeContext(line, kc, onNode)`, a pure gate (config verbs, `--context`, a stand-in cluster for other contexts). Lines without kubectl, ssh one-shots and in-session kubectl pass untouched. No pack or task changes.
+2. `il-immersive-cks-paper.js` v1.3.0: `CONTEXT_POOL` (10), `contextsFor(seed, simIds)` (own stream, salt `kube`), `paper.contexts`, `paper.startContext`, `incident.context`, `incident.kube`, `summary.contexts`, `ui.contextPanel / contextNote / contexts`, and attempts store `wrongContext`. `contexts: false` (`?contexts=0`) turns it off.
+3. `il-immersive-3d.js` v1.15.0: validated `cliExam.kube`, `_ctxGate` before the rules engine, `contextDim` on every authored draw (eased; instant under reduced motion), `data-il-cli-context(-current|-wrong)`, the `il-immersive-cli-context` event, and `_cliExamStatus().kube`.
+4. `il-immersive-troubleshoot-boot.js` + `/immersive/cks/`: the context line in the task panel, the context carried across tasks, per-task and summary results lines, and honest lobby copy. Manifest: `cks_paper` 1.3.0 + a `contexts` block, `sims.cli` 1.14.0 + `contextsNote`.
+5. Tests: unit 288 → 297 with `immersive-cks-contexts.test.js` (+9). It covers the gate's config verbs and outputs, `--context`, pass-through scope, the paper draw being unchanged with contexts on or off, the decoy, names surviving every variant swap, every bank task over 12 seeds (wrong context: kubectl tasks never resolve; after `use-context`: all resolve), the counted scope (17/28), summary/ui, player `contextDim`, and wiring. Browser 72 → 73: seed 1113 starts on the decoy with the scene fully dimmed, the full fix typed off-context stays unresolved, `use-context` lights the scene and the fix resolves, the next task inherits the context, `--context` is one-shot, the results report ✗/✓, and `?contexts=0` turns it off. The existing CKS paper browser checks switch context first, like a candidate would.
+
+---
+
+_Prior pass archived below (2026-11-11)._
 
 ## Verdict — 2026-11-11 Musk-bar pass
 

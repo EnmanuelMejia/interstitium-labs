@@ -60,6 +60,13 @@
  * coach hints, the prompt, sim toggles and verdict) is swapped back, so the incident reads in the paper's own names. The
  * typed command is echoed exactly as typed; silent `pre` replays use the pack's canonical commands (no swap). Scene
  * tints follow sim state, so the authored glTF needs no per-variant asset; its node names stay canonical.
+ * v1.15.0 (2026-11-13): kubeconfig contexts for the CKS paper. cliExam may carry kube: { contexts:[{name, cluster, user}],
+ * current, target }. Before the rules engine sees a learner line, ILImmersiveCLI.kubeContext answers `kubectl config …` from
+ * that kubeconfig and sends kubectl on any context other than the target to an empty stand-in cluster (nothing reaches the
+ * sim). The authored glTF IS the task's cluster, so while kubectl points elsewhere the WebGL scene renders desaturated and
+ * dimmed (contextDim, also in WebXR) and comes back over ~0.6 s after `use-context` (instant under reduced motion). The stage
+ * records { start, target, current, wrong, firstOk, firstWrong } per task, emits il-immersive-cli-context and returns it
+ * in _cliExamStatus().kube. A teaching cue the real exam does not give; the other contexts are stand-ins, not clusters.
  * This player owns [data-il-immersive][data-il-scene] curriculum scaffolds.
  */
 (function (g) {
@@ -77,6 +84,14 @@
     toks.sort(function (a, b){ return b.length - a.length; });
     var re = new RegExp('(^|[^A-Za-z0-9_])(' + toks.map(function (t){ return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|') + ')(?![A-Za-z0-9_])', 'g');
     return function (text){ return text == null ? text : String(text).replace(re, function (m, pre, tok){ return pre + map[tok]; }); };
+  }
+
+  /** v1.15.0: an authored node's colour while kubectl points at another cluster (d = 0 → as authored, 1 → fully dimmed). */
+  function contextDim(color, d){
+    d = Math.max(0, Math.min(1, +d || 0));
+    if (!d) return color;
+    var l = 0.2126 * color[0] + 0.7152 * color[1] + 0.0722 * color[2], k = 1 - 0.55 * d;
+    return [(color[0] + (l - color[0]) * 0.85 * d) * k, (color[1] + (l - color[1]) * 0.85 * d) * k, (color[2] + (l - color[2]) * 0.85 * d) * k];
   }
 
   var CYAN = [0.369, 0.918, 0.831];
@@ -482,6 +497,18 @@
     if (cfg.cliExam && j.cliExam.swap && j.cliExam.swap.length) {
       var sp = [].concat(j.cliExam.swap).filter(function (p){ return p && typeof p[0] === 'string' && typeof p[1] === 'string' && p[0] && p[1] && p[0] !== p[1]; }).slice(0, 16);
       if (sp.length) { cfg.cliExam.swap = sp; cfg.cliExam.swapFn = makeSwap(sp); }
+    }
+    /* 2026-11-13: CKS paper kubeconfig — validated context list + where the shell starts + the task's target context. */
+    if (cfg.cliExam && j.cliExam.kube && j.cliExam.kube.contexts && j.cliExam.kube.contexts.length) {
+      var kq = j.cliExam.kube, okName = function (n){ return typeof n === 'string' && /^[a-z0-9][a-z0-9.-]{0,40}$/.test(n); };
+      var kl = [].concat(kq.contexts).filter(function (c){ return c && okName(c.name); }).slice(0, 12)
+        .map(function (c){ return { name: c.name, cluster: okName(c.cluster) ? c.cluster : c.name, user: okName(c.user) ? c.user : c.name + '-admin' }; });
+      var has = function (n){ return kl.some(function (c){ return c.name === n; }); };
+      if (kl.length && has(kq.target)) {
+        var cur0 = has(kq.current) ? kq.current : kl[0].name;
+        cfg.cliExam.kube = { contexts: kl, current: cur0, target: kq.target,
+          rec: { start: cur0, target: kq.target, current: cur0, wrong: 0, firstOk: null, firstWrong: null } };
+      }
     }
     if (!cfg.gltf && cfg.asset && cfg.asset.indexOf('/assets/') === 0) cfg.gltf = cfg.asset;
     if (cfg.asset && cfg.asset.indexOf('procedural:') === 0) {
@@ -1615,6 +1642,7 @@
     this._cliPrint(['── Incident shell · ' + this._sim.title + ' (simulated: commands drive the rules engine, no real cluster)',
       'Work the ticket above. `check` shows how many checkpoints are verified · `hint` = tip for the next one (half credit) · `solution` is off until the paper ends · `reset` re-stages the incident.'], 'sys');
     this.root.setAttribute('data-il-cli-exam', this.cfg.cliExam.task);
+    if (this.cfg.cliExam.kube) this._ctxPaint(true);
     this._cliOnState();
     try { this._cliInput.focus(); } catch (e) { /* ignore */ }
   };
@@ -1624,8 +1652,10 @@
     var st = C.taskStatus(this._sim.id, ex.task, this._simState, this._cliCtx);
     var pre = Math.min(ex.pre, st.total);
     var hinted = Object.keys(this._cliExamHints || {}).map(Number).sort(function (a, b){ return a - b; });
+    var kr = ex.kube ? ex.kube.rec : null;
     return { task: ex.task, pre: pre, completed: Math.max(0, st.completed - pre), total: st.total - pre, done: st.done, hinted: hinted,
-      cmds: this._cliExamCmds || 0, status: st };
+      cmds: this._cliExamCmds || 0, status: st,
+      kube: kr ? { start: kr.start, target: kr.target, current: kr.current, wrong: kr.wrong, firstOk: kr.firstOk, firstWrong: kr.firstWrong } : null };
   };
   ScenePlayer.prototype._cliExamEmit = function (){
     var x = this._cliExamStatus();
@@ -1745,6 +1775,48 @@
     try { rec.start(); } catch (e5) { done(); }
   };
 
+  /** v1.15.0: scene dim level now (eases toward the target over ~0.6 s; instant under reduced motion). */
+  ScenePlayer.prototype._ctxDimNow = function (){
+    var k = this._ctxDim;
+    if (!k) return 0;
+    if (k.from === k.to) return k.to;
+    var now = (g.performance && performance.now()) || Date.now();
+    var f = k.instant ? 1 : Math.min(1, (now - k.at) / 600);
+    if (f >= 1) { k.from = k.to; return k.to; }
+    return k.from + (k.to - k.from) * f;
+  };
+  /** v1.15.0: reflect the kubeconfig on the stage — data attributes, scene dim target, il-immersive-cli-context event. */
+  ScenePlayer.prototype._ctxPaint = function (first){
+    var kube = this.cfg.cliExam && this.cfg.cliExam.kube; if (!kube) return;
+    var on = kube.current === kube.target, to = on ? 0 : 1;
+    var cur = this._ctxDim ? this._ctxDimNow() : to;
+    this._ctxDim = { from: first ? to : cur, to: to, at: (g.performance && performance.now()) || Date.now(), instant: !!(first || prefersReduced()) };
+    this.root.setAttribute('data-il-cli-context', on ? 'target' : 'other');
+    this.root.setAttribute('data-il-cli-context-current', kube.current);
+    var ev;
+    try { ev = new g.CustomEvent('il-immersive-cli-context', { detail: { current: kube.current, target: kube.target, onTarget: on, wrong: kube.rec.wrong } }); } catch (e) { ev = null; }
+    if (ev) this.root.dispatchEvent(ev);
+  };
+  /** v1.15.0: run the kubeconfig gate for one learner line. Returns a run()-shaped result when the gate answered, else the line to run. */
+  ScenePlayer.prototype._ctxGate = function (engineLine){
+    var C = g.ILImmersiveCLI, kube = this.cfg.cliExam && this.cfg.cliExam.kube;
+    if (!kube || this._cliReplaying || !C || !C.kubeContext) return { line: engineLine };
+    var onNode = !!(this._cliCtx && this._cliCtx.vars && this._cliCtx.vars.host);
+    var gt = C.kubeContext(engineLine, kube, onNode);
+    if (gt.kind === 'config') {
+      if (gt.current !== kube.current) { kube.current = gt.current; kube.rec.current = gt.current; this._ctxPaint(false); }
+      return { r: { out: gt.out, exit: gt.exit, set: null, events: [], verb: 'kubectl config', action: null, ctx: 'config' } };
+    }
+    if (gt.kind === 'wrong') {
+      kube.rec.wrong += 1;
+      if (kube.rec.firstOk === null) { kube.rec.firstOk = false; kube.rec.firstWrong = gt.context || null; }
+      this.root.setAttribute('data-il-cli-context-wrong', String(kube.rec.wrong));
+      return { r: { out: gt.out, exit: gt.exit, set: null, events: [], verb: 'kubectl (other context)', action: null, ctx: 'wrong' } };
+    }
+    if (gt.kubectl && kube.rec.firstOk === null) kube.rec.firstOk = true;
+    return { line: gt.line };
+  };
+
   /** v1.14.0: the paper's variant names on everything the stage prints (identity when there is no swap). */
   ScenePlayer.prototype._swapText = function (text){
     var f = this.cfg && this.cfg.cliExam && this.cfg.cliExam.swapFn;
@@ -1773,6 +1845,16 @@
     this._cliPrint(this._swapText(curPrompt) + ' ' + raw, 'cmd');
     /* v1.14.0: the learner types the paper's variant names; the rules engine speaks canonical (silent replays are canonical already). */
     var engineLine = this.cfg.cliExam && this.cfg.cliExam.swapFn && !this._cliReplaying ? this.cfg.cliExam.swapFn(raw) : raw;
+    /* v1.15.0: the paper's kubeconfig answers `kubectl config …` and keeps kubectl on other contexts away from the sim. */
+    var gate = this._ctxGate(engineLine);
+    if (gate.r) {
+      if (gate.r.out.length) this._cliPrint(gate.r.out, gate.r.exit === 0 ? 'out' : 'err');
+      this.root.setAttribute('data-il-cli-exit', String(gate.r.exit));
+      if (gate.r.ctx === 'wrong') { this._cliExamCmds = (this._cliExamCmds || 0) + 1; this._cliExamEmit(); }
+      simTrack('immersive_cli_cmd', { sim: sim.id, verb: gate.r.verb, exit: gate.r.exit, task: this._cliTask || null });
+      return gate.r;
+    }
+    engineLine = gate.line;
     var r = C.run(sim.id, this._simState, engineLine, this._cliCtx);
     /* v1.12.0: `ssh node-01` / `exit` move the session between hosts — keep the visible prompt honest. */
     if (C.promptFor && this._cliPromptEl) this._cliPromptEl.textContent = this._swapText(r.action === 'reset' ? pack.prompt : C.promptFor(sim.id, this._cliCtx));
@@ -1952,6 +2034,8 @@
     var MVP = mul(mat4(), P, MV);
     var N = new Float32Array(9);
     normalFromMV(N, MV);
+    var dim = this._ctxDimNow ? this._ctxDimNow() : 0;
+    if (dim) { color = contextDim(color, dim); glow = (glow || 0) * (1 - 0.7 * dim); }
     drawMesh(this.gl, this.prog, mesh, MVP, N, color, color, glow, time);
   };
 
@@ -2675,7 +2759,7 @@
     mount: mount,
     mountAll: mountAll,
     resolveScene: resolveScene,
-    version: '1.14.0',
+    version: '1.15.0',
     engines: ['three', 'godot', 'unreal', 'webgpu'],
     scenes: ['hermetic', 'rack', 'k8s', 'math'],
     note: 'Curriculum scenes. Noah = il-muse-3d (separate).',
@@ -2691,6 +2775,8 @@
     cliVoiceInput: true,
     cliExam: true,
     cliExamVariants: true,
+    cliExamContexts: true,
+    contextDim: contextDim,
     xr: {
       modes: XR_MODES,
       honesty: XR_HONESTY,

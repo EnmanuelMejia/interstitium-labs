@@ -1,5 +1,5 @@
 /**
- * IL CKS hands-on paper v1.2.0 (2026-11-11; v1.1.0 2026-11-10; v1.0.0 2026-11-09) — a timed, PERFORMANCE-BASED mock for the CKS, over the six authored CKS
+ * IL CKS hands-on paper v1.3.0 (2026-11-13; v1.2.0 2026-11-11; v1.1.0 2026-11-10; v1.0.0 2026-11-09) — a timed, PERFORMANCE-BASED mock for the CKS, over the six authored CKS
  * glTF scenes (plus the RBAC and NetworkPolicy scenes the CKS blueprint shares with the CKA) and their CLI packs.
  *
  * Would Elon be impressed by a CKS track whose only "exam" is predict-then-reveal multiple choice, when the real CKS is
@@ -39,6 +39,17 @@
  * fault + host name). Honest scope: 7 authored faults over 3 incidents, not procedurally generated faults; the other 21
  * incidents still vary names over one staged fault.
  *
+ * v1.3.0 (2026-11-13) — CLUSTER CONTEXTS. Would Elon be impressed by a CKS mock where every task is already sitting on the
+ * right cluster? No: on the real CKS each task names a kubectl context, and work typed against the previous task's cluster
+ * scores zero. So every paper now has a kubeconfig: each scene on the paper is its own cluster with a seeded context name
+ * (10 authored names, own PRNG stream per seed, so the task, name and fault draws are unchanged), plus one decoy context that
+ * no task uses. The first task starts on the decoy; every later task starts wherever the previous task left the shell. The
+ * task panel shows the task's context the way the exam does; kubectl lines on any other context go to an empty stand-in
+ * cluster (ILImmersiveCLI.kubeContext) and verify nothing. The results screen says, per task, whether you switched before
+ * your first kubectl command and how many kubectl commands hit another cluster. `contexts: false` (?contexts=0) turns it off.
+ * Honest scope: the other clusters are empty stand-ins, not modelled clusters; switching is not a scored checkpoint (as on
+ * the exam, the cost of forgetting is that the work lands elsewhere); only kubectl is context-bound.
+ *
  * Honest scope: SIMULATED shell over the in-browser rules engine (real CLI syntax, computed output). Not a live
  * cluster, not killer.sh, not the CNCF CKS — Falco, AppArmor, kube-bench, kubesec, KubeLinter, Trivy, cosign and gVisor
  * are rules-engine stand-ins, not real tools, kernels or sandboxes. Scores stay on this device (il.cksPaper.v1).
@@ -51,13 +62,13 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (TS) {
   'use strict';
 
-  var VERSION = '1.2.0';
+  var VERSION = '1.3.0';
   var STORE_KEY = 'il.cksPaper.v1';
   var SRC = 'cks-paper';
   var HINT_CREDIT = TS ? TS.HINT_CREDIT : 0.5;
   /* The CKS passing score is 67% (Linux Foundation candidate handbook); this bar mirrors it as a study bar, not a CNCF result. */
   var DEFAULTS = { count: 6, minutes: 36, passPct: 67 };
-  var HONESTY = 'Timed hands-on CKS paper in a SIMULATED shell over in-browser 3D drills (rules engine, computed output). Not a live cluster, not killer.sh, not the CNCF CKS. Falco, AppArmor, kube-bench, kubesec, KubeLinter, Trivy, cosign and gVisor are rules-engine stand-ins — a study signal, not a predicted exam score. Names, ports, registry and tags are re-drawn per paper seed; the three kube-bench tasks also draw a seeded fault variant (which node — controlplane or node01 over ssh — and which kubelet / API server settings are broken), from 7 authored faults.';
+  var HONESTY = 'Timed hands-on CKS paper in a SIMULATED shell over in-browser 3D drills (rules engine, computed output). Not a live cluster, not killer.sh, not the CNCF CKS. Falco, AppArmor, kube-bench, kubesec, KubeLinter, Trivy, cosign and gVisor are rules-engine stand-ins — a study signal, not a predicted exam score. Names, ports, registry and tags are re-drawn per paper seed; the three kube-bench tasks also draw a seeded fault variant (which node — controlplane or node01 over ssh — and which kubelet / API server settings are broken), from 7 authored faults. Each scene on a paper is its own cluster with a seeded kubectl context; kubectl on any other context reaches an empty stand-in cluster, not the task.';
 
   /**
    * The six official CNCF CKS domains (curriculum v1.34 weights, identical to ILImmersiveExam.CKS_BLUEPRINT).
@@ -273,6 +284,22 @@
   }
 
   /**
+   * v1.3.0 kubeconfig contexts: authored names (not the exam's), unit-tested to survive every variant swap unchanged and to
+   * never occur as a word in the CLI or sims, so a context name can never be mistaken for a lab object.
+   */
+  var CONTEXT_POOL = ['sec-alpha', 'sec-bravo', 'gate-east', 'gate-west', 'core-ops', 'edge-lab', 'vault-ops', 'mgmt-ws', 'infra-k8s', 'audit-c3'];
+  var CONTEXT_SALT = 0x6b756265; /* 'kube': the context draw gets its own PRNG stream */
+  /** contextsFor(seed, simIds) → { bySim:{simId:name}, decoy, contexts:[{name, cluster, user}] (sorted, like get-contexts) }. */
+  function contextsFor(seed, simIds) {
+    var rnd = mulberry32(((seed >>> 0) ^ CONTEXT_SALT) >>> 0);
+    var pool = shuffle(CONTEXT_POOL.slice(), rnd), bySim = {}, used = [];
+    simIds.forEach(function (sim) { if (!bySim[sim] && used.length < pool.length - 1) { bySim[sim] = pool[used.length]; used.push(bySim[sim]); } });
+    var decoy = pool[used.length];
+    var contexts = used.concat([decoy]).sort().map(function (n) { return { name: n, cluster: n, user: n + '-admin' }; });
+    return { bySim: bySim, decoy: decoy, contexts: contexts };
+  }
+
+  /**
    * Build a paper: domains are visited heaviest first (ties shuffled), one task per domain per round, so a 6-task paper
    * touches all six CKS domains and a 3-task paper spends its time on the three 20% domains. opts: count, minutes, seed.
    */
@@ -297,12 +324,16 @@
     var startedAt = opts.now != null ? opts.now : Date.now();
     var variants = opts.variants !== false;
     var faults = variants && opts.faults !== false;
+    var useCtx = opts.contexts !== false;
+    var kc = useCtx ? contextsFor(seed, picked.map(function (x) { return x.simId; })) : null;
     return {
       version: VERSION, kind: 'cks', seed: seed, minutes: minutes,
       passPct: opts.passPct != null ? opts.passPct : DEFAULTS.passPct,
       startedAt: startedAt, endsAt: startedAt + minutes * 60 * 1000,
       variants: variants,
       faults: faults,
+      contexts: kc ? kc.contexts : null,
+      startContext: kc ? kc.decoy : null,
       incidents: picked.map(function (x, i) {
         /* v1.2.0: draw the fault first (own stream), then the names it varies */
         var fl = null;
@@ -318,7 +349,8 @@
           pre: x.pre, ticket: sw(fl && fl.ticket ? fl.ticket : x.ticket), title: sw(tk ? tk.title : x.id), steps: tk ? tk.steps.length : null,
           variant: v && v.pairs.length ? v : null,
           fault: fl ? { id: fl.id, label: sw(fl.label), host: fl.host, canonical: fl === FAULTS[x.id][0] } : null,
-          result: null };
+          context: kc ? kc.bySim[x.simId] : null,
+          kube: null, result: null };
       }),
       honesty: HONESTY
     };
@@ -371,11 +403,20 @@
     var untested = AREA_ORDER.filter(function (k) { return !by[k]; }).map(function (k) { return AREAS[k].domain; });
     var pct = wSum ? Math.round(wPct / wSum) : 0;
     var passPct = paper.passPct != null ? paper.passPct : DEFAULTS.passPct;
+    /* v1.3.0: kubeconfig habit, from the stage's per-task context record (inc.kube). Not scored: it explains lost points. */
+    var ctxIncs = incs.filter(function (x) { return x.context; });
+    var contexts = ctxIncs.length ? {
+      tasks: ctxIncs.length,
+      usedKubectl: ctxIncs.filter(function (x) { return x.kube && x.kube.firstOk !== null && x.kube.firstOk !== undefined; }).length,
+      landed: ctxIncs.filter(function (x) { return x.kube && x.kube.firstOk === true; }).length,
+      wrongCmds: ctxIncs.reduce(function (n, x) { return n + (x.kube ? x.kube.wrong || 0 : 0); }, 0),
+      wrongTasks: ctxIncs.filter(function (x) { return x.kube && x.kube.wrong > 0; }).length
+    } : null;
     return {
       incidents: incs.length, ckaIncidents: incs.length, pct: pct, rawPct: incs.length ? Math.round((rawSum / incs.length) * 100) : 0,
       passPct: passPct, passed: incs.length > 0 && pct >= passPct,
       resolved: incs.filter(function (x) { return x.result && x.result.resolved; }).length,
-      coveragePct: wSum, untested: untested, areas: areas, weakest: weakest, mesh: null,
+      coveragePct: wSum, untested: untested, areas: areas, weakest: weakest, mesh: null, contexts: contexts,
       blueprint: { weightedPct: pct, coveragePct: wSum, untested: untested,
         honesty: 'Weights are the published CNCF CKS domain weights (15/15/10/20/20/20), renormalised over the domains this paper tested; scores are typed checkpoints in a simulated shell — a study signal, not a predicted CNCF exam score.' },
       honesty: HONESTY
@@ -393,7 +434,8 @@
     var list = db.attempts || (db.attempts = []);
     list.unshift({ at: Date.now(), seed: paper.seed, incidents: summary.incidents, resolved: summary.resolved, pct: summary.pct, rawPct: summary.rawPct,
       coveragePct: summary.coveragePct, passed: summary.passed, minutes: paper.minutes, variants: paper.variants !== false,
-      faults: (paper.incidents || []).filter(function (x) { return x.fault; }).map(function (x) { return x.id + ':' + x.fault.id; }), weakest: summary.weakest ? summary.weakest.area : null });
+      faults: (paper.incidents || []).filter(function (x) { return x.fault; }).map(function (x) { return x.id + ':' + x.fault.id; }),
+      wrongContext: summary.contexts ? summary.contexts.wrongCmds : null, weakest: summary.weakest ? summary.weakest.area : null });
     if (list.length > 20) list.length = 20;
     db.last = list[0];
     saveStore(db);
@@ -421,6 +463,21 @@
 
   /** Page copy for the shared paper UI (il-immersive-troubleshoot-boot.js reads T.ui when present). */
   var ui = {
+    /* v1.3.0: the task panel line, as the exam shows it (the context, and the command that selects it). */
+    contextPanel: function (name) { return 'Context for this task: ' + name + ' · kubectl config use-context ' + name; },
+    contextNote: function (inc) {
+      var k = inc.kube;
+      if (!inc.context) return '';
+      if (!k || k.firstOk === null || k.firstOk === undefined) return 'Context ' + inc.context + ': no kubectl command reached a cluster on this task' + (k && k.wrong ? ' (' + k.wrong + ' went to another context)' : '') + '.';
+      return 'Context ' + inc.context + ': ' + (k.firstOk ? 'switched before your first kubectl command ✓' : 'your first kubectl command went to ' + (k.firstWrong || 'another context') + ' ✗')
+        + (k.wrong ? ' · ' + k.wrong + ' kubectl command' + (k.wrong > 1 ? 's' : '') + ' hit another cluster and verified nothing' : '') + '.';
+    },
+    contexts: function (sum) {
+      var c = sum.contexts; if (!c) return '';
+      return 'Cluster contexts: ' + c.landed + '/' + c.usedKubectl + ' tasks that used kubectl started on the right cluster'
+        + (c.wrongCmds ? '; ' + c.wrongCmds + ' kubectl command' + (c.wrongCmds > 1 ? 's' : '') + ' on ' + c.wrongTasks + ' task' + (c.wrongTasks > 1 ? 's' : '') + ' went to another context (on the real exam that work scores zero)' : '; no kubectl command went to the wrong cluster')
+        + '. The other contexts are empty stand-in clusters in this lab.';
+    },
     history: function (last) {
       return last
         ? ('Last CKS paper on this device: ' + last.pct + '% (CKS-weighted, ' + (last.coveragePct != null ? last.coveragePct : '?') + '% of the blueprint tested) · ' + last.resolved + '/' + last.incidents + ' tasks done · ' + (last.passed ? 'pass bar cleared' : 'under pass bar') + '.')
@@ -446,6 +503,7 @@
   return {
     VERSION: VERSION, STORE_KEY: STORE_KEY, SRC: SRC, HINT_CREDIT: HINT_CREDIT, DEFAULTS: DEFAULTS, HONESTY: HONESTY, honesty: HONESTY,
     AREAS: AREAS, AREA_ORDER: AREA_ORDER, ANCHOR: ANCHOR, INCIDENTS: INCIDENTS, POOLS: POOLS, VARY: VARY, swapper: swapper, variantFor: variantFor, get: function (id) { return BY_ID[id] || null; },
+    CONTEXT_POOL: CONTEXT_POOL, contextsFor: contextsFor,
     FAULTS: FAULTS, faultFor: faultFor, faultsOf: faultsOf, fault: function (id) { return FAULT_BY_ID[id] || null; },
     bank: bank, buildPaper: buildPaper, gradeIncident: gradeIncident, summarize: summarize,
     loadStore: loadStore, recordAttempt: recordAttempt, remediate: remediate, stage: stage, mulberry32: mulberry32, ui: ui

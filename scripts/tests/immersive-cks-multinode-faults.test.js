@@ -111,7 +111,7 @@ test('rules engine: node01 follows the same documented kubelet rules; a clean co
 });
 
 test('CLI v1.13.0 hosts: ssh session + prompt, one-shot ssh, unknown host, worker has no API server manifest or etcd, master checks refused on node01', () => {
-  assert.equal(C.VERSION, '1.13.0');
+  assert.ok(['1.13.0', '1.14.0'].includes(C.VERSION), 'hosts arrived in CLI v1.13.0; v1.14.0 (2026-11-13, kubeconfig contexts) keeps them');
   const s = session(null);
   assert.equal(s.prompt(), 'root@controlplane:~#');
   assert.equal(s.run('ssh node02').exit, 255);
@@ -176,7 +176,7 @@ test('the four multi-node tasks are solvable through an interactive ssh session 
 });
 
 test('paper v1.2.0 FAULTS: canonical first, every fault is a real task on the same scene, tickets never leak a command or a step label', () => {
-  assert.equal(K.VERSION, '1.2.0');
+  assert.ok(['1.2.0', '1.3.0'].includes(K.VERSION), 'faults arrived in paper v1.2.0; v1.3.0 (2026-11-13, contexts) keeps them');
   assert.deepEqual(Object.keys(K.FAULTS).sort(), ['cks-bench-control-plane', 'cks-bench-kubelet', 'cks-bench-readonly']);
   let n = 0, multi = 0;
   for (const [id, list] of Object.entries(K.FAULTS)) {
@@ -294,7 +294,7 @@ test('wiring: boot marks the stage and results with the fault, page copy is hone
   assert.equal(m.cks_paper.faults.multi_node_faults, 4);
   assert.match(m.cks_paper.faults.honesty, /not procedurally generated/);
   assert.equal(m.sims.runtime_version, '1.13.0');
-  assert.equal(m.sims.cli.version, '1.13.0');
+  assert.equal(m.sims.cli.version, C.VERSION);
   assert.match(m.sims.cli.hardeningNote, /No VM and no real ssh/);
   assert.match(m.scenes.find((x) => x.sim === SIM).note, /node01 worker bay/);
   const doc = readFileSync(path.join(root, 'docs/ops/MUSK-BAR-RECURSIVE.md'), 'utf8');

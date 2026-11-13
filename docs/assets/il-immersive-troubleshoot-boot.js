@@ -5,7 +5,11 @@
  * seeded names) mounts its stage with cliExam.swap so the shell speaks the paper's names; a [data-il-ts-variants]
  * checkbox (or ?variants=0) turns variants off for a drill-replay paper. 2026-11-11: an incident carrying `fault` (ILCksPaper
  * v1.2.0 seeded fault variants) already names its own CLI task (inc.taskId); the stage gets data-il-ts-fault and the results
- * screen says which fault this paper staged (never during the task: the ticket is the only brief). Depends on ILTroubleshootExam + ILImmersiveCLI +
+ * screen says which fault this paper staged (never during the task: the ticket is the only brief). 2026-11-13: an incident
+ * carrying `context` (ILCksPaper v1.3.0 kubeconfig) shows its context line in [data-il-ts-context] and mounts with cliExam.kube;
+ * the shell's current context carries from task to task (the first task starts on the paper's decoy), the stage's per-task
+ * context record lands on inc.kube at grading, and the results screen adds one context line per task plus a summary line
+ * ([data-il-ts-contexts]). ?contexts=0 builds a paper without contexts. Depends on ILTroubleshootExam + ILImmersiveCLI +
  * ILImmersiveSims + ILImmersive3D (ScenePlayer with cliExam). Optional: ILImmersiveExam (blueprint weights) and
  * ILImmersiveReview (missed checkpoints → CLI review cards). Relative assets only; simulated shell, no live cluster.
  */
@@ -40,7 +44,7 @@
     var html = document.documentElement;
     var lobby = $('[data-il-ts-lobby]'), run = $('[data-il-ts-run]'), done = $('[data-il-ts-done]');
     var stage = $('[data-il-ts-stage]');
-    var paper = null, idx = 0, timerId = null, incT0 = 0, live = null, finished = false;
+    var paper = null, idx = 0, timerId = null, incT0 = 0, live = null, finished = false, kubeCurrent = null;
 
     var bankEl = $('[data-il-ts-bank]');
     if (bankEl) bankEl.textContent = String(T.bank(C, {}).length);
@@ -79,7 +83,9 @@
       stage.setAttribute('data-il-sim', inc.simId);
       stage.setAttribute('data-gltf', sim.glb);
       stage.setAttribute('data-immersive', JSON.stringify({ mode: '3d-first', engine: 'three', asset: sim.glb, webgpu: true, sim: inc.simId,
-        exam: true, cliExam: { task: inc.taskId, pre: inc.pre, swap: inc.variant ? inc.variant.pairs : null } }));
+        exam: true, cliExam: { task: inc.taskId, pre: inc.pre, swap: inc.variant ? inc.variant.pairs : null,
+          kube: inc.context && paper.contexts ? { contexts: paper.contexts, current: kubeCurrent || paper.startContext, target: inc.context } : null } }));
+      if (inc.context) stage.setAttribute('data-il-ts-context-target', inc.context); else stage.removeAttribute('data-il-ts-context-target');
       if (inc.variant) stage.setAttribute('data-il-ts-variant', inc.variant.label); else stage.removeAttribute('data-il-ts-variant');
       if (inc.fault) stage.setAttribute('data-il-ts-fault', inc.fault.id); else stage.removeAttribute('data-il-ts-fault');
       try { API.mount(stage); } catch (e3) { /* ignore */ }
@@ -91,6 +97,8 @@
       $('[data-il-ts-progress]').textContent = U ? U.progress(idx + 1, paper.incidents.length) : 'Incident ' + (idx + 1) + '/' + paper.incidents.length;
       $('[data-il-ts-area]').textContent = inc.areaLabel;
       $('[data-il-ts-ticket]').textContent = inc.ticket;
+      var cx = $('[data-il-ts-context]');
+      if (cx) { cx.textContent = inc.context && U && U.contextPanel ? U.contextPanel(inc.context) : ''; show(cx, !!inc.context); }
       $('[data-il-ts-live]').textContent = 'Checkpoints verified: 0/' + (inc.steps - inc.pre);
       var nx = $('[data-il-ts-next]');
       nx.textContent = U ? U.nextLabel(idx + 1 >= paper.incidents.length) : (idx + 1 >= paper.incidents.length ? 'Submit & finish paper' : 'Submit & next incident →');
@@ -99,10 +107,15 @@
       mountIncident(inc);
     }
 
+    if (stage) stage.addEventListener('il-immersive-cli-context', function (ev) {
+      var d = ev.detail || {};
+      if (paper && !finished && d.current) kubeCurrent = d.current;
+    });
     if (stage) stage.addEventListener('il-immersive-cli-exam', function (ev) {
       var d = ev.detail || {};
       if (!paper || finished || !paper.incidents[idx] || d.task !== paper.incidents[idx].taskId) return;
       live = d;
+      if (d.kube && d.kube.current) kubeCurrent = d.kube.current;
       var el = $('[data-il-ts-live]');
       if (el) el.textContent = 'Checkpoints verified: ' + d.completed + '/' + d.total + (d.hinted && d.hinted.length ? ' · ' + d.hinted.length + ' hinted' : '') + (d.done ? ' — resolved ✓ submit to move on' : '');
       if (d.done) $('[data-il-ts-next]').setAttribute('data-resolved', '1');
@@ -113,6 +126,7 @@
       var inc = paper.incidents[idx], p = player(), x = null;
       try { x = p && p._cliExamStatus && p.cfg && p.cfg.cliExam ? p._cliExamStatus() : null; } catch (e) { x = null; }
       inc.result = T.gradeIncident(inc, x ? x.status : null, x ? x.hinted : [], { cmds: x ? x.cmds : 0, ms: now() - incT0, skipped: !!skipped || !x || !x.cmds });
+      if (inc.context) { inc.kube = x && x.kube ? x.kube : null; if (inc.kube && inc.kube.current) kubeCurrent = inc.kube.current; }
     }
 
     function next() {
@@ -147,6 +161,9 @@
         wk.textContent = U ? U.noWeakest : 'No weak area on this paper — every CKA incident was resolved without hints.';
         html.setAttribute('data-il-ts-weakest', '');
       }
+      var cl = $('[data-il-ts-contexts]');
+      if (cl) cl.textContent = sum.contexts && U && U.contexts ? U.contexts(sum) : '';
+      html.setAttribute('data-il-ts-context-wrong', sum.contexts ? String(sum.contexts.wrongCmds) : '');
       var bp = $('[data-il-ts-blueprint]');
       if (bp) bp.textContent = U ? U.blueprint(sum) : sum.blueprint
         ? ('CKA blueprint: Troubleshooting is ' + sum.blueprint.weight + '% of the CKA. At ' + sum.blueprint.pct + '% here it leaves ' + sum.blueprint.atStake + ' of those ' + sum.blueprint.weight + ' points at stake. ' + sum.blueprint.honesty)
@@ -175,6 +192,7 @@
         li.appendChild(node('p', 'font-mono text-[0.62rem] uppercase tracking-[0.16em] text-gold', (i + 1) + ' · ' + inc.areaLabel + (inc.cka ? '' : ' · not in CKA score')));
         li.appendChild(node('p', 'mt-1 font-display text-base', inc.title + ' — ' + (r ? r.pct : 0) + '%'));
         if (inc.variant) li.appendChild(node('p', 'mt-1 font-mono text-[0.62rem] text-muted', 'Variant (drill name → this paper): ' + inc.variant.label, { 'data-il-ts-variant-note': inc.id }));
+        if (inc.context && U && U.contextNote) li.appendChild(node('p', 'mt-1 font-mono text-[0.62rem] text-muted', U.contextNote(inc), { 'data-il-ts-context-note': inc.id, 'data-ok': inc.kube && inc.kube.firstOk ? '1' : '0' }));
         if (inc.fault) li.appendChild(node('p', 'mt-1 font-mono text-[0.62rem] text-muted', 'Fault staged on this paper: ' + inc.fault.label + (inc.fault.canonical ? ' (the free-play drill’s fault)' : ' (a fault variant)'), { 'data-il-ts-fault-note': inc.id }));
         li.appendChild(node('p', 'mt-1 text-sm', r ? r.feedback : 'Not reached.', { 'data-il-ts-feedback': '' }));
         if (r && r.notes.length) {
@@ -211,12 +229,14 @@
       var q = /[?&]seed=(\d+)/.exec(location.search);
       if (q) opts.seed = +q[1];
       if (/[?&]variants=0\b/.test(location.search)) opts.variants = false;
+      if (/[?&]contexts=0\b/.test(location.search)) opts.contexts = false;
       paper = T.buildPaper(C, opts);
-      idx = 0; finished = false;
+      idx = 0; finished = false; kubeCurrent = null;
       html.removeAttribute('data-il-ts-finished');
       html.setAttribute('data-il-ts-seed', String(paper.seed));
       html.setAttribute('data-il-ts-variants', paper.variants ? '1' : '0');
       html.setAttribute('data-il-ts-faults', paper.faults ? '1' : '0');
+      html.setAttribute('data-il-ts-kube', paper.contexts ? '1' : '0');
       show(lobby, false); show(done, false); show(run, true);
       timerId = setInterval(tick, 250);
       tick();
