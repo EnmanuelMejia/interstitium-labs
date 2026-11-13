@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21; +hands-on Troubleshooting paper 2026-10-28; +CKS track: new authored cks-pod-security.glb drill, CLI pack, timed CKS paper 2026-10-29; +CKS supply chain: new authored cks-supply-chain.glb drill, CLI pack, CKS paper at 6/6 domains 2026-11-02; +CKS runtime security: new authored cks-runtime-security.glb drill (Falco, AppArmor, immutable containers), CLI pack 2026-11-03; +CKS cluster setup: new authored cks-cluster-hardening.glb drill (CIS benchmark / kube-bench), CLI pack 2026-11-04; +CKS static analysis: new authored cks-static-analysis.glb drill (kubesec, KubeLinter, CI gate), CLI pack 2026-11-05; +CKS sandboxed runtimes: new authored cks-sandbox-runtime.glb drill (RuntimeClass, gVisor, containerd handler, overhead), CLI pack 2026-11-06; +hands-on CKS paper over the authored CKS scenes, CKS review queue 2026-11-09; +seeded CKS paper variants 2026-11-10; +multi-node CIS tasks (ssh node01) and seeded fault variants 2026-11-11): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21; +hands-on Troubleshooting paper 2026-10-28; +CKS track: new authored cks-pod-security.glb drill, CLI pack, timed CKS paper 2026-10-29; +CKS supply chain: new authored cks-supply-chain.glb drill, CLI pack, CKS paper at 6/6 domains 2026-11-02; +CKS runtime security: new authored cks-runtime-security.glb drill (Falco, AppArmor, immutable containers), CLI pack 2026-11-03; +CKS cluster setup: new authored cks-cluster-hardening.glb drill (CIS benchmark / kube-bench), CLI pack 2026-11-04; +CKS static analysis: new authored cks-static-analysis.glb drill (kubesec, KubeLinter, CI gate), CLI pack 2026-11-05; +CKS sandboxed runtimes: new authored cks-sandbox-runtime.glb drill (RuntimeClass, gVisor, containerd handler, overhead), CLI pack 2026-11-06; +hands-on CKS paper over the authored CKS scenes, CKS review queue 2026-11-09; +seeded CKS paper variants 2026-11-10; +multi-node CIS tasks (ssh node01) and seeded fault variants 2026-11-11; +CKS paper kubeconfig contexts, scene dimmed off-context 2026-11-13): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -617,7 +617,7 @@ await check('WebXR in-headset world HUD: open predict → select commits option 
   const host = page.locator('[data-il-sim-ready="etcd-quorum"]');
   await host.waitFor({ timeout: 30000 });
   await host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
-  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.14.0');
+  assert.equal(await page.evaluate(() => window.ILImmersive3D.version), '1.15.0');
   assert.equal(await page.evaluate(() => window.ILImmersive3D.xrHud), true);
   await host.locator('[data-il-xr-enter="vr"]').click();
   await page.waitForFunction(() => document.querySelector('[data-il-sim-ready="etcd-quorum"]').getAttribute('data-il-xr-state') === 'active', null, { timeout: 10000 });
@@ -1672,7 +1672,7 @@ await check('CKA blueprint: finished paper scores the 5 official domains by weig
 });
 
 /* 2026-10-28: hands-on mixed-incident Troubleshooting paper on graded CLI stages over the authored glTF. */
-async function tsIncident(page) {
+async function tsIncident(page, opts = {}) {
   const id = await page.waitForFunction(() => document.documentElement.getAttribute('data-il-ts-incident')).then(h => h.jsonValue());
   const inc = await page.evaluate(() => { const p = window.ILTroubleshootExamUI.paper(); return p.incidents.find(i => i.id === document.documentElement.getAttribute('data-il-ts-incident')); });
   const host = page.locator(`[data-il-ts-stage][data-il-cli-exam="${inc.taskId}"]`);
@@ -1680,6 +1680,8 @@ async function tsIncident(page) {
   const steps = await page.evaluate(([sim, task]) => window.ILImmersiveCLI.task(sim, task).steps.map(s => s.hint), [inc.simId, inc.taskId]);
   /* 2026-11-10: a CKS paper task with seeded variants is typed in the paper's names (canon = the drill's own commands). */
   const typed = inc.variant ? await page.evaluate(([hs, pairs]) => { const sw = window.ILCksPaper.swapper(pairs); return hs.map(h => sw(h)); }, [steps, inc.variant.pairs]) : steps;
+  /* 2026-11-13: a CKS paper task names its kubectl context; land on it first (as on the exam) unless the check is about contexts. */
+  if (inc.context && opts.ctx !== false) await type(host, 'kubectl config use-context ' + inc.context);
   return { id, inc, host, cmds: typed.slice(inc.pre).map(h => h.split(/\s{2}then\s{2}/)), canon: steps.slice(inc.pre).map(h => h.split(/\s{2}then\s{2}/)) };
 }
 await check('Troubleshooting paper: 3 mixed incidents on authored .glb stages, ticket-only graded shell (no step list, solution off), typed fix / hint / stall → per-incident feedback, weakest area, CKA 30% blueprint, review cards', async () => {
@@ -2019,6 +2021,84 @@ await check('CKS paper fault variants: seed 1174 stages the node01 kubelet fault
   assert.deepEqual(off.errors, []);
   await off.page.close();
   return t.inc.fault.id + ' on ' + worker + ' · kubelet-auth replay ' + replayed + '/' + t.cmds.length + ' · resolved · variants=0 → kubelet-auth';
+});
+
+/* 2026-11-13: kubeconfig contexts on the CKS paper — the task panel names the context, kubectl on another one verifies nothing, the authored scene is dimmed until use-context. */
+await check('CKS paper contexts: context line per task, decoy start, wrong-context kubectl verifies nothing and dims the authored scene, use-context lights it and the fix resolves, context carries to the next task, results report the habit; ?contexts=0 off', async () => {
+  const { page, errors } = await open('/immersive/cks/?seed=1113');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'load' });
+  await page.locator('[data-il-ts-start][data-count="3"]').click();
+  await page.locator('[data-il-ts-run]:not([hidden])').waitFor();
+  assert.equal(await page.locator('html').getAttribute('data-il-ts-kube'), '1');
+  const paper = await page.evaluate(() => { const p = window.ILTroubleshootExamUI.paper(); return { contexts: p.contexts, start: p.startContext }; });
+  const t = await tsIncident(page, { ctx: false });
+  assert.ok(t.inc.context && t.inc.context !== paper.start);
+  assert.equal(await page.locator('[data-il-ts-context]').textContent(), 'Context for this task: ' + t.inc.context + ' · kubectl config use-context ' + t.inc.context);
+  assert.equal(await page.locator('[data-il-ts-context]').isVisible(), true);
+  await t.host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
+  assert.equal(await t.host.getAttribute('data-il-cli-context'), 'other');
+  assert.equal(await t.host.getAttribute('data-il-cli-context-current'), paper.start, 'first task starts on the decoy');
+  assert.equal(await t.host.evaluate(el => el._ilImmersive._ctxDimNow()), 1, 'authored scene fully dimmed off-context');
+  await t.host.screenshot({ path: path.join(shots, 'immersive-cks-paper-context-off.png') });
+  /* The whole fix typed on the decoy: nothing reaches the task's cluster. */
+  for (const group of t.cmds) for (const c of group) await type(t.host, c);
+  const kubectlSteps = t.cmds.filter(g => g.some(c => /^(sudo )?(kubectl|k) /.test(c))).length;
+  assert.ok(kubectlSteps > 0);
+  assert.doesNotMatch(await page.locator('[data-il-ts-live]').textContent(), /resolved/);
+  assert.ok(+(await t.host.getAttribute('data-il-cli-context-wrong')) >= kubectlSteps);
+  assert.match(await logText(t.host), /No resources found in|Error from server \(NotFound\)/);
+  await type(t.host, 'kubectl config get-contexts');
+  const log = await logText(t.host);
+  assert.match(log, new RegExp('\\*\\s+' + paper.start + '\\s+' + paper.start + '\\s+' + paper.start + '-admin'));
+  for (const c of paper.contexts) assert.match(log, new RegExp(c.name + '-admin'));
+  await type(t.host, 'kubectl config use-context ' + t.inc.context);
+  assert.match(await logText(t.host), new RegExp('Switched to context "' + t.inc.context + '"\\.'));
+  assert.equal(await t.host.getAttribute('data-il-cli-context'), 'target');
+  await t.host.evaluate(el => new Promise(r => { const f = () => (el._ilImmersive._ctxDimNow() === 0 ? r() : requestAnimationFrame(f)); f(); }));
+  await type(t.host, 'reset');
+  for (const group of t.cmds) for (const c of group) await type(t.host, c);
+  assert.match(await page.locator('[data-il-ts-live]').textContent(), /resolved ✓/);
+  await t.host.screenshot({ path: path.join(shots, 'immersive-cks-paper-context-on.png') });
+  await page.locator('[data-il-ts-next]').click();
+  await page.waitForFunction(id => document.documentElement.getAttribute('data-il-ts-incident') !== id, t.id);
+  const t2 = await tsIncident(page, { ctx: false });
+  assert.notEqual(t2.inc.context, t.inc.context);
+  assert.equal(await t2.host.getAttribute('data-il-cli-context-current'), t.inc.context, 'the shell stays where the previous task left it');
+  assert.equal(await t2.host.getAttribute('data-il-cli-context'), 'other');
+  await type(t2.host, 'kubectl --context ' + t2.inc.context + ' get pods -A');
+  assert.equal(await t2.host.getAttribute('data-il-cli-context'), 'other', '--context is one command only');
+  await type(t2.host, 'kubectl config use-context ' + t2.inc.context);
+  for (const group of t2.cmds) for (const c of group) await type(t2.host, c);
+  assert.match(await page.locator('[data-il-ts-live]').textContent(), /resolved ✓/);
+  await page.locator('[data-il-ts-end]').click();
+  await page.locator('[data-il-ts-done]:not([hidden])').waitFor({ timeout: 10000 });
+  const n1 = page.locator('[data-il-ts-context-note="' + t.id + '"]');
+  assert.match(await n1.textContent(), new RegExp('^Context ' + t.inc.context + ': your first kubectl command went to ' + paper.start + ' ✗ · \\d+ kubectl commands hit another cluster and verified nothing\\.$'));
+  assert.equal(await n1.getAttribute('data-ok'), '0');
+  const n2 = page.locator('[data-il-ts-context-note="' + t2.id + '"]');
+  assert.match(await n2.textContent(), /switched before your first kubectl command ✓/);
+  assert.match(await page.locator('[data-il-ts-contexts]').textContent(), /^Cluster contexts: 1\/2 tasks that used kubectl started on the right cluster; \d+ kubectl commands on 1 task went to another context/);
+  const att = await page.evaluate(() => JSON.parse(localStorage.getItem('il.cksPaper.v1')).last);
+  assert.ok(att.wrongContext > 0);
+  await page.locator('[data-il-ts-done]').screenshot({ path: path.join(shots, 'immersive-cks-paper-context-results.png') });
+  assert.deepEqual(errors, []);
+  await page.close();
+
+  const off = await open('/immersive/cks/?seed=1113&contexts=0');
+  await off.page.locator('[data-il-ts-start][data-count="3"]').click();
+  await off.page.locator('[data-il-ts-run]:not([hidden])').waitFor();
+  assert.equal(await off.page.locator('html').getAttribute('data-il-ts-kube'), '0');
+  const o = await tsIncident(off.page);
+  assert.equal(o.id, t.id, 'same seed, same draw');
+  assert.equal(o.inc.context, null);
+  assert.equal(await off.page.locator('[data-il-ts-context]').isVisible(), false);
+  assert.equal(await o.host.getAttribute('data-il-cli-context'), null);
+  for (const group of o.cmds) for (const c of group) await type(o.host, c);
+  assert.match(await off.page.locator('[data-il-ts-live]').textContent(), /resolved ✓/);
+  assert.deepEqual(off.errors, []);
+  await off.page.close();
+  return t.inc.context + ' (start ' + paper.start + ') · wrong-context replay unresolved · use-context → resolved · carried to ' + t2.inc.context;
 });
 
 await browser.close();

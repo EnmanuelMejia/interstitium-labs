@@ -45,7 +45,7 @@ function terminal(inc, pairs) {
 }
 
 test('v1.1.0 pools: every task has a VARY entry, pools are disjoint, never canonical, and never a word anywhere in the CLI packs or sims', () => {
-  assert.match(K.VERSION, /^1\.[12]\.0$/, 'name variants since v1.1.0; v1.2.0 (2026-11-11) adds fault variants');
+  assert.match(K.VERSION, /^1\.[123]\.0$/, 'name variants since v1.1.0; v1.2.0 (2026-11-11) adds fault variants');
   assert.deepEqual(Object.keys(K.VARY).sort(), K.INCIDENTS.map((x) => x.id).sort());
   const canon = Object.keys(K.POOLS), seen = new Set();
   for (const [c, pool] of Object.entries(K.POOLS)) {
@@ -161,7 +161,7 @@ test('results screen: hinted / missed checkpoints show this paper\'s commands, n
 
 test('wiring: player v1.14.0 swaps the CLI boundary, boot passes cliExam.swap, page has the variants toggle, manifest + docs', () => {
   const player = readFileSync(path.join(root, 'docs/assets/il-immersive-3d.js'), 'utf8');
-  assert.match(player, /version: '1\.14\.0'/);
+  assert.match(player, /version: '1\.1[45]\.0'/);
   assert.match(player, /cliExamVariants: true/);
   assert.match(player, /function makeSwap\(pairs\)/);
   assert.match(player, /swapFn && !this\._cliReplaying \? this\.cfg\.cliExam\.swapFn\(raw\) : raw/);

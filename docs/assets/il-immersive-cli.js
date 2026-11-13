@@ -1,5 +1,5 @@
 /**
- * IL Immersive CLI v1.13.0 (2026-11-11; v1.12.0 2026-11-06; v1.11.0 2026-11-05; v1.10.0 2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
+ * IL Immersive CLI v1.14.0 (2026-11-13; v1.13.0 2026-11-11; v1.12.0 2026-11-06; v1.11.0 2026-11-05; v1.10.0 2026-11-04; v1.9.0 2026-11-03; v1.8.0 2026-11-02; v1.7.0 2026-10-29; v1.6.0 2026-10-27; v1.5.0 2026-10-23; v1.4.0 2026-10-22; v1.3.0 2026-10-21; v1.2.0 2026-10-20; v1.1.0 2026-10-19; v1.0.0 2026-10-16) — type real kubectl / etcdctl / crictl / aws CLI syntax and the authored
  * glTF scene changes. Killercoda-style tasks (goal → ordered steps → verify) over the SAME in-browser rules
  * engine (il-immersive-sims.js) that drives the predict→reveal drills.
  *
@@ -111,6 +111,18 @@
  * that node, and a worker has no API server manifest or /var/lib/etcd — the shell says so). Tasks: worker-kubelet ·
  * worker-authz (anonymous off, ServiceAccount token under AlwaysAllow) · worker-readonly · split-hardening (profiling on
  * controlplane + anonymous kubelet auth on node01). Same honest scope: computed output, no VM, no real kubelet or ssh.
+ *
+ * v1.14.0 (2026-11-13) — kubeconfig CONTEXTS for the hands-on CKS paper (no new pack, no new task; 21 packs/69 tasks/383 steps).
+ * Would Elon be impressed by an exam mock where every task is already on the right cluster? No: on the real CKS each task
+ * names a cluster context, and work typed against the previous task's cluster scores zero. `kubeContext(line, kc, onNode)`
+ * is a pure gate the paper stage runs BEFORE run(): `kubectl config get-contexts | current-context | use-context NAME | view`
+ * are answered from the paper's kubeconfig (kc = { contexts:[{name, cluster, user}], current, target }); `--context NAME`
+ * picks a context for one command (stripped before the rules engine sees the line); any other kubectl line on a context
+ * that is not the task's target goes to an EMPTY stand-in cluster: lists say "No resources found", named objects and
+ * namespaces are NotFound, writes are refused, `get nodes` shows that cluster's own node names, and nothing reaches the
+ * task's sim state. Only kubectl is context-bound: ssh sessions, kube-bench, sed, trivy, cosign and lab files are not (the
+ * real exam reaches nodes by name too). Honest scope: the other contexts are empty stand-ins, not modelled clusters, and
+ * `kubectl config set-context` / namespace defaults are not modelled (the shell says so).
  *
  * Pure + UMD so `node --test` exercises exactly what the browser runs.
  *   run(simId, state, line, ctx) → { out:[lines], exit, set:{statePatch}|null, events:[…], action, verb }
@@ -5147,6 +5159,97 @@
     return r;
   }
 
+  /* ── v1.14.0 kubeconfig contexts (CKS paper): a pure gate in front of run() ───────────────────────── */
+  var CTX_KIND = { po: 'pods', pod: 'pods', pods: 'pods', deploy: 'deployments.apps', deployment: 'deployments.apps', deployments: 'deployments.apps',
+    svc: 'services', service: 'services', services: 'services', ns: 'namespaces', namespace: 'namespaces', namespaces: 'namespaces',
+    sa: 'serviceaccounts', serviceaccount: 'serviceaccounts', cm: 'configmaps', configmap: 'configmaps', secret: 'secrets', secrets: 'secrets',
+    ds: 'daemonsets.apps', daemonset: 'daemonsets.apps', rs: 'replicasets.apps', role: 'roles.rbac.authorization.k8s.io',
+    rolebinding: 'rolebindings.rbac.authorization.k8s.io', clusterrolebinding: 'clusterrolebindings.rbac.authorization.k8s.io',
+    netpol: 'networkpolicies.networking.k8s.io', networkpolicy: 'networkpolicies.networking.k8s.io', runtimeclass: 'runtimeclasses.node.k8s.io' };
+  var CTX_WRITE = /^(apply|create|patch|delete|label|annotate|scale|rollout|set|edit|replace|expose|run|cordon|uncordon|drain|taint)$/;
+  function ctxByName(kc, name) {
+    var list = (kc && kc.contexts) || [];
+    for (var i = 0; i < list.length; i++) if (list[i].name === name) return list[i];
+    return null;
+  }
+  /** `get nodes` on a stand-in cluster: its own node names, so the learner can see they are on the wrong cluster. */
+  function ctxNodes(c) {
+    var cl = (c && c.cluster) || 'cluster';
+    return table([['NAME', 'STATUS', 'ROLES', 'AGE', 'VERSION'], [cl + '-cp1', 'Ready', 'control-plane', '41d', 'v1.34.1'], [cl + '-w1', 'Ready', '<none>', '41d', 'v1.34.1']]);
+  }
+  /** What a kubectl line does on an EMPTY stand-in cluster (the context is not the task's target). */
+  function ctxWrong(t, c) {
+    var verb = t[1] || '';
+    var ns = flag(t, ['-n', '--namespace']);
+    ns = typeof ns === 'string' ? ns : null;
+    var all = hasFlag(t, ['-A', '--all-namespaces']);
+    var pos = positional(t.slice(2), KUBECTL_VALUED);
+    var kind = pos[0] || '', name = pos[1] || null;
+    if (kind.indexOf('/') > 0 && !name) { name = kind.split('/')[1]; kind = kind.split('/')[0]; }
+    var nsMissing = ns && ns !== 'default' && ns !== 'kube-system';
+    if (verb === 'auth') return { out: ['no'], exit: 1 };
+    if (verb === 'get' && /^(nodes?|no)$/.test(kind) && !name) return { out: ctxNodes(c), exit: 0 };
+    if (verb === 'get' && kind && !name) return { out: [all ? 'No resources found' : 'No resources found in ' + (ns || 'default') + ' namespace.'], exit: 0 };
+    if (CTX_WRITE.test(verb)) {
+      if (nsMissing) return { out: ['Error from server (NotFound): namespaces "' + ns + '" not found'], exit: 1 };
+      return { out: ['Error from server (NotFound): the server could not find the requested resource'], exit: 1 };
+    }
+    if (nsMissing) return { out: ['Error from server (NotFound): namespaces "' + ns + '" not found'], exit: 1 };
+    if ((verb === 'get' || verb === 'describe') && kind && name) return { out: ['Error from server (NotFound): ' + (CTX_KIND[kind] || kind) + ' "' + name + '" not found'], exit: 1 };
+    if ((verb === 'logs' || verb === 'exec') && kind) return { out: ['Error from server (NotFound): pods "' + (name || kind) + '" not found'], exit: 1 };
+    return { out: ['Error from server (NotFound): the server could not find the requested resource'], exit: 1 };
+  }
+  /**
+   * kubeContext(line, kc, onNode) → { kind:'pass', line } (send line to run(); --context stripped) ·
+   * { kind:'config', out, exit, current } (a kubeconfig command; `current` is the context after it) ·
+   * { kind:'wrong', out, exit, context } (kubectl against a context that is not kc.target: nothing reaches the sim).
+   * onNode = the shell is inside an ssh session (kubectl there is the node's business, not the paper kubeconfig's).
+   */
+  function kubeContext(line, kc, onNode) {
+    var raw = String(line == null ? '' : line);
+    if (!kc || !kc.contexts || !kc.contexts.length || onNode) return { kind: 'pass', line: raw };
+    var u = unwrap(tokenize(raw)), t = u.t;
+    if (u.host || t[0] !== 'kubectl') return { kind: 'pass', line: raw };
+    var cur = ctxByName(kc, kc.current);
+    if (t[1] === 'config') {
+      var sub = t[2] || '';
+      if (sub === 'current-context') return cur ? { kind: 'config', out: [cur.name], exit: 0, current: cur.name } : { kind: 'config', out: ['error: current-context is not set'], exit: 1, current: kc.current };
+      if (sub === 'get-contexts') {
+        var only = positional(t.slice(3), ['-o', '--output'])[0];
+        var rows = kc.contexts.filter(function (c) { return !only || c.name === only; });
+        if (only && !rows.length) return { kind: 'config', out: ['error: context ' + only + ' not found'], exit: 1, current: kc.current };
+        if (flag(t, ['-o', '--output']) === 'name') return { kind: 'config', out: rows.map(function (c) { return c.name; }), exit: 0, current: kc.current };
+        return { kind: 'config', out: table([['CURRENT', 'NAME', 'CLUSTER', 'AUTHINFO', 'NAMESPACE']].concat(rows.map(function (c) {
+          return [c.name === kc.current ? '*' : '', c.name, c.cluster, c.user, ''];
+        }))), exit: 0, current: kc.current };
+      }
+      if (sub === 'use-context' || sub === 'use') {
+        var want = t[3];
+        if (!want) return { kind: 'config', out: ['error: Unexpected args: []', 'See \'kubectl config use-context -h\' for help and examples'], exit: 1, current: kc.current };
+        if (!ctxByName(kc, want)) return { kind: 'config', out: ['error: no context exists with the name: "' + want + '"'], exit: 1, current: kc.current };
+        return { kind: 'config', out: ['Switched to context "' + want + '".'], exit: 0, current: want };
+      }
+      if (sub === 'view') {
+        var out = ['apiVersion: v1', 'kind: Config', 'current-context: ' + (kc.current || '""'), 'contexts:'];
+        kc.contexts.forEach(function (c) { out.push('- context:', '    cluster: ' + c.cluster, '    user: ' + c.user, '  name: ' + c.name); });
+        out.push('# clusters and users are not modelled in this lab (no server addresses or credentials are printed).');
+        return { kind: 'config', out: out, exit: 0, current: kc.current };
+      }
+      return { kind: 'config', out: ['sim: `kubectl config ' + sub + '` is not modelled in this paper (simulated shell). Modelled: get-contexts · current-context · use-context NAME · view. Pass -n on each command instead of setting a namespace default.'], exit: 2, current: kc.current };
+    }
+    var over = flag(t, ['--context']);
+    var target = cur;
+    var stripped = raw;
+    if (over !== null) {
+      if (over === true || !ctxByName(kc, over)) return { kind: 'wrong', out: ['error: context "' + (over === true ? '' : over) + '" does not exist'], exit: 1, context: over === true ? '' : over };
+      target = ctxByName(kc, over);
+      stripped = raw.replace(/\s--context(=|\s+)\S+/, '');
+    }
+    if (target && target.name === kc.target) return { kind: 'pass', line: stripped, kubectl: true };
+    var w = ctxWrong(t, target);
+    return { kind: 'wrong', out: w.out, exit: w.exit, context: target ? target.name : '' };
+  }
+
   /** Re-run a pack's reconcile after a non-CLI state change (toggle button, scenario, XR select). */
   function reconcile(simId, state, ctx) {
     var p = PACKS[simId]; if (!p || !ctx) return;
@@ -5376,8 +5479,9 @@
   }
 
   return {
-    VERSION: '1.13.0',
+    VERSION: '1.14.0',
     honesty: HONESTY,
+    kubeContext: kubeContext,
     tokenize: tokenize,
     flag: flag,
     manifestMove: manifestMove,

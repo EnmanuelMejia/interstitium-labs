@@ -71,6 +71,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
       <li>Bank: <span data-il-ts-bank>?</span> typed CKS tasks across the 6 domains: Cluster Setup 15 · Cluster Hardening 15 · System Hardening 10 · Minimize Microservice Vulnerabilities 20 · Supply Chain Security 20 · Monitoring, Logging &amp; Runtime Security 20. Domains are drawn heaviest first, so a 6-task paper covers every domain and a 3-task paper covers the three 20% domains.</li>
       <li><strong class="text-paper">Seeded variants:</strong> every paper re-draws each task’s names: namespace, user, ServiceAccount, Secret, AppArmor profile, service port, registry host and image tags. So a paper is not a replay of the free-play drills. The shell speaks the paper’s names, and a drill-replay name simply does not exist in that paper. For 21 tasks these are surface variants over the same staged fault.</li>
       <li><strong class="text-paper">Seeded fault variants + two nodes:</strong> the three kube-bench tasks also draw which fault is staged and where: the controlplane kubelet, or the kubelet on <code>node01</code> (a worker you reach with <code>ssh node01</code>, with its own config file and no API server or etcd), anonymous access vs a ServiceAccount token under AlwaysAllow, or one finding per node. kube-bench audits only the node it runs on, so you have to work on the right host. The worker’s name is drawn per paper too. That is 7 authored faults over 3 tasks, not procedurally generated faults. CIS check ids, kubelet ports and system paths stay real.</li>
+      <li><strong class="text-paper">Cluster contexts:</strong> each scene on a paper is its own cluster with its own kubectl context, and the task panel names the context for every task. The first task starts on a context no task uses, and every later task starts wherever you left the shell. <code>kubectl config get-contexts</code>, <code>current-context</code> and <code>use-context</code> work. Any kubectl command typed on another context goes to an empty stand-in cluster and verifies nothing, as forgetting the switch costs you the task on the real exam. The 3D scene is the task’s cluster, so it renders dimmed until kubectl points at it (a study cue the exam does not give). Only kubectl depends on the context: ssh, kube-bench and lab files do not.</li>
       <li>Every paper gives 6 minutes per task, the pace of the real exam (15–20 tasks in 2 hours, per the Linux Foundation’s CKS instructions).</li>
       <li>Each task gives you the statement only, with no step list. <code>check</code> counts verified checkpoints. <code>hint</code> gives the next one at half credit. <code>solution</code> stays off until the results screen.</li>
       <li>The score is weighted by the CKS domain weights over the domains this paper tested, and the domains it did not test are listed, never counted as passed. The weakest domain is the one with the most points at stake. The 67% pass bar mirrors the published CKS passing score as a study bar. It is not a CNCF result.</li>
@@ -97,6 +98,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
 
     <div class="il-exam-panel mt-5">
       <p class="font-mono text-[0.62rem] uppercase tracking-[0.18em] text-gold">Task</p>
+      <p class="mt-2 font-mono text-[0.72rem] text-gold hidden" data-il-ts-context hidden></p>
       <p class="il-ts-ticket mt-2 text-base" data-il-ts-ticket></p>
       <p class="mt-3 font-mono text-[0.7rem] text-cyan" data-il-ts-live aria-live="polite"></p>
       <div class="mt-4 flex flex-wrap gap-3">
@@ -118,6 +120,7 @@ if("caches" in window){caches.keys().then(function(ks){for(var i=0;i<ks.length;i
     <h2 class="font-display text-2xl text-gold">Paper complete</h2>
     <p class="mt-3 text-sm" data-il-ts-summary></p>
     <p class="mt-2 text-sm" data-il-ts-weakest aria-live="polite"></p>
+    <p class="mt-2 text-sm" data-il-ts-contexts aria-live="polite"></p>
     <p class="mt-2 text-xs text-muted" data-il-ts-blueprint></p>
     <h3 class="mt-6 font-display text-lg text-gold">Per task</h3>
     <ol class="mt-3 space-y-3" data-il-ts-incidents></ol>
