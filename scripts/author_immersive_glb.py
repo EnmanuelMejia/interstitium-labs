@@ -1958,7 +1958,8 @@ def scene_cks_cluster_hardening() -> list:
     (/var/lib/kubelet/config.yaml), its authentication gate (anonymous), authorization gate (Webhook vs AlwaysAllow), the
     :10250 API port and the legacy :10255 read-only port. A kube-bench job reads the config of each component and writes
     PASS / FAIL / WARN; an attacker pod on the pod network probes the kubelet ports. sim-* parts are revealed only by
-    the rules engine. Added 2026-11-04 (fourth CKS asset)."""
+    the rules engine. Added 2026-11-04 (fourth CKS asset). 2026-11-11: a node01 worker bay (w1-*) with its own kubelet,
+    config, gates, ports and kube-bench run, for the multi-node (ssh node01) tasks."""
     parts = []
     ped = {"il": {"role": "pedagogy", "topic": "cks-cluster-hardening", "cert": "CKS", "domain": "cluster-setup"}}
     floor = MeshBuilder()
@@ -2047,9 +2048,59 @@ def scene_cks_cluster_hardening() -> list:
     parts.append((probe, MAT_DENY, "sim-attacker-probe", {**ped, "label": "curl -sk https://<node>:10250/pods", "simOnly": True}))
     _edge(parts, (2.05, -0.35, 0.85), (2.35, -0.45, -0.7), "edge-probe-kubelet", MAT_DENY, ped, "probe :10250", 0.03, 0.08)
     _edge(parts, (1.85, -0.35, 0.85), (2.3, -0.45, -1.4), "edge-probe-ro", MAT_DENY, ped, "probe :10255", 0.03, 0.08)
+    # 2026-11-11: node01 — a worker with its OWN kubelet, config file, gates and ports (multi-node CKS tasks). kube-bench
+    # audits only the node it runs on, so a clean report on controlplane says nothing about node01.
+    wfl = MeshBuilder()
+    wfl.add_box(4.45, -0.9, -0.2, 2.1, 0.08, 3.6)
+    parts.append((wfl, MAT_VOID, "w1-floor", {**ped, "label": "node01 (worker) bay"}))
+    w1 = MeshBuilder()
+    w1.add_chamfer_box(4.45, -0.8, -0.65, 1.9, 0.08, 1.9, 0.03)
+    parts.append((w1, MAT_INK, "w1-node", {**ped, "label": "node01 (worker: its own kubelet + config; no API server, no etcd)", "kind": "Node"}))
+    wkl = MeshBuilder()
+    wkl.add_chamfer_box(3.95, -0.45, -0.9, 0.55, 0.55, 0.55, 0.05)
+    parts.append((wkl, MAT_CYAN, "w1-kubelet", {**ped, "label": "node01 kubelet (fixed only from node01: ssh node01)", "kind": "Kubelet"}))
+    wcfg = MeshBuilder()
+    wcfg.add_chamfer_box(3.95, -0.05, -1.32, 0.46, 0.4, 0.04, 0.02)
+    parts.append((wcfg, MAT_PAPER, "w1-kubelet-config", {**ped, "label": "node01:/var/lib/kubelet/config.yaml (a different file from controlplane's)", "kind": "Config"}))
+    wst = MeshBuilder()
+    wst.add_sphere(4.32, 0.0, -0.9, 0.1, 10, 12)
+    parts.append((wst, MAT_TAINT, "sim-w1-stale-config", {**ped, "label": "node01 config edited, its kubelet not restarted", "simOnly": True}))
+    wan = MeshBuilder()
+    wan.add_chamfer_box(4.5, -0.45, -0.5, 0.08, 0.46, 0.46, 0.02)
+    parts.append((wan, MAT_SHIELD, "w1-authn-gate", {**ped, "label": "node01 authentication (anonymous on/off, CIS 4.2.1)", "kind": "Policy"}))
+    waz = MeshBuilder()
+    waz.add_chamfer_box(4.72, -0.45, -0.5, 0.08, 0.46, 0.46, 0.02)
+    parts.append((waz, MAT_SHIELD, "w1-authz-gate", {**ped, "label": "node01 authorization (Webhook vs AlwaysAllow, CIS 4.2.2)", "kind": "Policy"}))
+    wp0 = MeshBuilder()
+    wp0.add_cylinder(5.02, -0.45, -0.5, 0.11, 0.2, 20)
+    parts.append((wp0, MAT_LED, "w1-port-10250", {**ped, "label": "node01 kubelet API :10250 (10.0.0.11)", "kind": "Port"}))
+    wp5 = MeshBuilder()
+    wp5.add_cylinder(5.02, -0.45, -1.2, 0.11, 0.2, 20)
+    parts.append((wp5, MAT_MUTED, "w1-port-10255", {**ped, "label": "node01 read-only port :10255 (plain HTTP, no auth)", "kind": "Port"}))
+    wro = MeshBuilder()
+    wro.add_sphere(5.02, -0.15, -1.2, 0.11, 10, 12)
+    parts.append((wro, MAT_DENY, "sim-w1-ro-port-open", {**ped, "label": "node01 :10255 open: pod specs with no credentials", "simOnly": True}))
+    wop = MeshBuilder()
+    wop.add_sphere(5.02, -0.1, -0.5, 0.13, 10, 12)
+    parts.append((wop, MAT_DENY, "sim-w1-kubelet-open", {**ped, "label": "node01 kubelet API answers 200 (pods listed; /run executes)", "simOnly": True}))
+    wdn = MeshBuilder()
+    wdn.add_chamfer_box(5.25, -0.45, -0.5, 0.06, 0.52, 0.52, 0.02)
+    parts.append((wdn, MAT_SHIELD, "sim-w1-kubelet-denied", {**ped, "label": "node01 refuses (401 Unauthorized / 403 Forbidden)", "simOnly": True}))
+    wb = MeshBuilder()
+    wb.add_chamfer_box(4.1, -0.55, 0.75, 0.6, 0.42, 0.42, 0.05)
+    parts.append((wb, MAT_GOLD, "w1-kube-bench", {**ped, "label": "kube-bench run ON node01 (it audits only the node it runs on)", "kind": "Scanner"}))
+    wbf = MeshBuilder()
+    wbf.add_sphere(4.1, -0.22, 0.75, 0.11, 10, 12)
+    parts.append((wbf, MAT_DENY, "sim-w1-bench-fail", {**ped, "label": "node01 [FAIL] / [WARN] findings", "simOnly": True}))
+    _edge(parts, (2.8, -0.7, -1.2), (3.6, -0.7, -0.9), "edge-ssh-w1", MAT_LED, ped, "ssh node01 (kubelet fixes happen on the node that runs it)", 0.03, 0.06)
+    _edge(parts, (4.1, -0.4, 0.5), (3.95, -0.3, -1.1), "edge-bench-w1", MAT_LED, ped, "reads node01's kubelet flags + config.yaml", 0.03, 0.06)
+    _edge(parts, (2.2, -0.35, 0.95), (4.95, -0.45, -0.35), "edge-probe-w1", MAT_DENY, ped, "probe node01:10250 / :10255", 0.03, 0.08)
     lod = MeshBuilder()
     lod.add_box(0, -0.75, 0, 6.0, 0.12, 3.4)
     parts.append((lod, MAT_VOID, "lod1-hardening-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
+    lodw = MeshBuilder()
+    lodw.add_box(4.45, -0.75, -0.2, 1.9, 0.12, 3.2)
+    parts.append((lodw, MAT_VOID, "lod1-hardening-w1-proxy", {"il": {"lod": 1, "role": "lod-proxy"}}))
     return parts
 
 

@@ -42,7 +42,7 @@ function play(inc, { upto = Infinity, hintAt = [] } = {}) {
 const idx = (html) => readFileSync(path.join(root, 'docs/immersive/index.html'), 'utf8').includes(html);
 
 test('v1.0.0 bank: 24 typed CKS tasks across all six CNCF CKS domains, each on a real CLI task over an authored .glb', () => {
-  assert.match(K.VERSION, /^1\.[01]\.0$/);
+  assert.match(K.VERSION, /^1\.[012]\.0$/);
   const b = K.bank(C);
   assert.equal(b.length, 24);
   assert.equal(new Set(b.map(x => x.id)).size, 24);
@@ -58,8 +58,10 @@ test('v1.0.0 bank: 24 typed CKS tasks across all six CNCF CKS domains, each on a
   }
   /* every sim's CKS packs are in the bank: the 21 CKS-pack tasks + 3 shared RBAC/NetworkPolicy tasks */
   const cksTasks = C.list().filter(id => /^cks-/.test(id)).reduce((n, id) => n + C.pack(id).tasks.length, 0);
-  assert.equal(cksTasks, 21);
+  assert.equal(cksTasks, 25, '21 CKS-pack tasks + 4 multi-node CIS tasks (2026-11-11), which serve as fault variants of the kube-bench incidents');
   assert.equal(b.filter(x => /^cks-/.test(x.simId)).length, 21);
+  const asFaults = new Set(Object.values(K.FAULTS || {}).flat().map(f => f.taskId));
+  for (const id of C.list().filter(id => /^cks-/.test(id))) for (const tk of C.pack(id).tasks) assert.ok(b.some(x => x.simId === id && x.taskId === tk.id) || asFaults.has(tk.id), id + '/' + tk.id + ' reachable from the paper');
 });
 
 test('domains and weights are the CNCF CKS blueprint used by the predict paper (ILImmersiveExam.CKS_BLUEPRINT)', () => {

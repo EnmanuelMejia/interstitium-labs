@@ -41,7 +41,7 @@ function glbJson(rel) {
 
 test('NEW asset: cks-supply-chain.glb is authored + Blender-polished, the second CKS scene; sim-* nodes hidden when secure', () => {
   const sim = S.get(SIM);
-  assert.ok(['1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0'].includes(S.VERSION), 'cks-supply-chain arrived in v1.8.0; v1.9.0 (2026-11-03) keeps it');
+  assert.ok(['1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0', '1.13.0'].includes(S.VERSION), 'cks-supply-chain arrived in v1.8.0; v1.9.0 (2026-11-03) keeps it');
   assert.equal(sim.cert, 'CKS');
   assert.equal(sim.glb, '/assets/immersive/cks-supply-chain.glb');
   assert.ok(!S.list().filter(id => id !== SIM).map(id => S.get(id).glb).includes(sim.glb), 'a new asset, not a re-read of an existing scene');

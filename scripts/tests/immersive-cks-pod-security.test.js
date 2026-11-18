@@ -72,7 +72,7 @@ test('NEW asset: cks-pod-security.glb is authored + Blender-polished, the first 
 test('rules engine: Pod Security Admission, seccomp default, NetworkPolicy isolation, RBAC scope and audit backend semantics', () => {
   const sim = S.get(SIM);
   const at = set => S.cksDecide(S.merge(sim.initial, set));
-  assert.ok(['1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0'].includes(S.VERSION), 'cks-pod-security arrived in v1.7.0; v1.8.0 (2026-11-02) keeps it');
+  assert.ok(['1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0', '1.13.0'].includes(S.VERSION), 'cks-pod-security arrived in v1.7.0; v1.8.0 (2026-11-02) keeps it');
   assert.equal(sim.derive(sim.initial).verdict, 'healthy');
   assert.equal(S.verdictTone('exposed'), 'bad', 'the new unsafe verdict never renders healthy');
   /* restricted vs a privileged template: every restricted check is listed, in the controller's order */

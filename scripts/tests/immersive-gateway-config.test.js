@@ -36,7 +36,7 @@ const status = r => (/^HTTP\/2 (\d+)/.exec(r.out[0]) || [])[1];
 /* ── Gateway API rules engine ─────────────────────────────────────────────── */
 test('gateway-api sim: Gateway API spec semantics over the SAME authored ingress-gateway.glb', () => {
   const sim = S.get('gateway-api');
-  assert.ok(['1.4.0', '1.5.0', '1.6.0', '1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0'].includes(S.VERSION), 'gateway-api arrived in v1.4.0; v1.5.0 (2026-10-22) – v1.11.0 (2026-11-05) keep it');
+  assert.ok(['1.4.0', '1.5.0', '1.6.0', '1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0', '1.13.0'].includes(S.VERSION), 'gateway-api arrived in v1.4.0; v1.5.0 (2026-10-22) – v1.11.0 (2026-11-05) keep it');
   assert.equal(sim.glb, S.get('ingress-routing').glb, 'no new asset — the Blender-polished ingress-gateway.glb read as Gateway API');
   const at = set => S.gatewayDecide(S.merge(sim.initial, set));
   const codes = set => at(set).clients.map(c => c.status);
@@ -193,10 +193,10 @@ test('Secret pack: missing secretKeyRef key → CreateContainerConfigError with 
   assert.doesNotMatch(out, /s3cr3t/);
 });
 
-test('pack totals: 21 packs · 65 tasks · 353 steps (20 · 62 · 331 on 2026-11-05; 19 · 59 · 311 on 2026-11-04; 18 · 56 · 293 on 2026-11-03; 17 · 53 · 277 on 2026-11-02; 16 · 49 · 255 on 2026-10-29; 15 · 44 · 226 on 2026-10-27; 11 · 30 · 136 on 2026-10-21; 12 · 34 · 160 on 2026-10-22; 13 · 38 · 184 on 2026-10-23); every new step focuses real nodes in its own authored .glb', () => {
+test('pack totals: 21 packs · 69 tasks · 383 steps (21 · 65 · 353 on 2026-11-06; 20 · 62 · 331 on 2026-11-05; 19 · 59 · 311 on 2026-11-04; 18 · 56 · 293 on 2026-11-03; 17 · 53 · 277 on 2026-11-02; 16 · 49 · 255 on 2026-10-29; 15 · 44 · 226 on 2026-10-27; 11 · 30 · 136 on 2026-10-21; 12 · 34 · 160 on 2026-10-22; 13 · 38 · 184 on 2026-10-23); every new step focuses real nodes in its own authored .glb', () => {
   const tasks = C.list().reduce((n, id) => n + C.pack(id).tasks.length, 0);
   const steps = C.list().reduce((n, id) => n + C.pack(id).tasks.reduce((m, t) => m + t.steps.length, 0), 0);
-  assert.deepEqual([C.list().length, tasks, steps], [21, 65, 353]);
+  assert.deepEqual([C.list().length, tasks, steps], [21, 69, 383]);
   assert.equal(C.pack('gateway-api').tasks.length, 4);
   assert.equal(C.pack('config-propagation').tasks.length, 3);
   const m = JSON.parse(readFileSync(path.join(root, 'docs/assets/scenes/manifest.json'), 'utf8'));

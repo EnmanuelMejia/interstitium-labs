@@ -1,4 +1,4 @@
-/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21; +hands-on Troubleshooting paper 2026-10-28; +CKS track: new authored cks-pod-security.glb drill, CLI pack, timed CKS paper 2026-10-29; +CKS supply chain: new authored cks-supply-chain.glb drill, CLI pack, CKS paper at 6/6 domains 2026-11-02; +CKS runtime security: new authored cks-runtime-security.glb drill (Falco, AppArmor, immutable containers), CLI pack 2026-11-03; +CKS cluster setup: new authored cks-cluster-hardening.glb drill (CIS benchmark / kube-bench), CLI pack 2026-11-04; +CKS static analysis: new authored cks-static-analysis.glb drill (kubesec, KubeLinter, CI gate), CLI pack 2026-11-05; +CKS sandboxed runtimes: new authored cks-sandbox-runtime.glb drill (RuntimeClass, gVisor, containerd handler, overhead), CLI pack 2026-11-06; +hands-on CKS paper over the authored CKS scenes, CKS review queue 2026-11-09; +seeded CKS paper variants 2026-11-10): authored .glb really renders, LOD1 skipped, sims change the scene.
+/** Immersive 3D browser check (2026-10-06; +4 CKA sims & shuffled options 2026-10-07; +6 CKA drills, keyed answers by index 2026-10-08; +remediation loop 2026-10-13; +WebXR entry 2026-10-14; +in-headset world HUD 2026-10-15; +in-scene CLI lab 2026-10-16; +Lab Muse coach, reduced-motion drills, verdict tones 2026-10-19; +Gateway API drill, ConfigMap/Secret CLI pack, CKA blueprint score 2026-10-21; +hands-on Troubleshooting paper 2026-10-28; +CKS track: new authored cks-pod-security.glb drill, CLI pack, timed CKS paper 2026-10-29; +CKS supply chain: new authored cks-supply-chain.glb drill, CLI pack, CKS paper at 6/6 domains 2026-11-02; +CKS runtime security: new authored cks-runtime-security.glb drill (Falco, AppArmor, immutable containers), CLI pack 2026-11-03; +CKS cluster setup: new authored cks-cluster-hardening.glb drill (CIS benchmark / kube-bench), CLI pack 2026-11-04; +CKS static analysis: new authored cks-static-analysis.glb drill (kubesec, KubeLinter, CI gate), CLI pack 2026-11-05; +CKS sandboxed runtimes: new authored cks-sandbox-runtime.glb drill (RuntimeClass, gVisor, containerd handler, overhead), CLI pack 2026-11-06; +hands-on CKS paper over the authored CKS scenes, CKS review queue 2026-11-09; +seeded CKS paper variants 2026-11-10; +multi-node CIS tasks (ssh node01) and seeded fault variants 2026-11-11): authored .glb really renders, LOD1 skipped, sims change the scene.
  * npm run test:immersive:browser   — disposable headless Chromium, local static server, no network writes.
  */
 import assert from 'node:assert/strict';
@@ -1959,6 +1959,66 @@ await check('CKS paper variants: seeded names in ticket + shell + sim panel, var
   assert.deepEqual(off.errors, []);
   await off.page.close();
   return t.id + ' [' + t.inc.variant.label + '] · replay ' + replayed + '/' + t.cmds.length + ' · variant resolved · variants=0 resolves canonical';
+});
+
+/* 2026-11-11: seeded FAULT variants + multi-node — the kube-bench task stages a node01 fault under a re-drawn worker name. */
+await check('CKS paper fault variants: seed 1174 stages the node01 kubelet fault under a re-drawn worker name; ssh session prompt follows; canonical-fault replay does not resolve it; results name the fault; ?variants=0 gives the drill fault', async () => {
+  const { page, errors } = await open('/immersive/cks/?seed=1174');
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'load' });
+  await page.locator('[data-il-ts-start][data-count="6"]').click();
+  await page.locator('[data-il-ts-run]:not([hidden])').waitFor();
+  assert.equal(await page.locator('html').getAttribute('data-il-ts-faults'), '1');
+  const t = await tsIncident(page);
+  assert.equal(t.id, 'cks-bench-kubelet');
+  assert.equal(t.inc.fault.id, 'w1-anon-alwaysallow');
+  assert.equal(t.inc.taskId, 'worker-kubelet');
+  assert.equal(await t.host.getAttribute('data-il-ts-fault'), 'w1-anon-alwaysallow');
+  const worker = t.inc.variant.pairs.find(([c]) => c === 'node01')[1];
+  const n01 = /(^|[^A-Za-z0-9_])node01(?![A-Za-z0-9_])/;
+  const ticket = await page.locator('[data-il-ts-ticket]').textContent();
+  assert.ok(ticket.includes('ssh ' + worker) && !n01.test(ticket), 'ticket names the drawn worker: ' + ticket);
+  await t.host.locator('.il-immersive__badge[data-il-mesh="authored"]').waitFor({ timeout: 30000 });
+  /* Replay of the free-play fault (controlplane kubelet-auth): wrong host, wrong probe — not resolved. */
+  const canonFault = await page.evaluate(() => window.ILImmersiveCLI.task('cks-cluster-hardening', 'kubelet-auth').steps.map(s => s.hint));
+  for (const c of canonFault) await type(t.host, c);
+  const replayed = +(await t.host.getAttribute('data-il-cli-exam-progress')).split('/')[0];
+  assert.ok(replayed < t.cmds.length, 'kubelet-auth replay stalls at ' + replayed + '/' + t.cmds.length);
+  assert.doesNotMatch(await page.locator('[data-il-ts-live]').textContent(), /resolved/);
+  await type(t.host, 'reset');
+  /* ssh session on the drawn worker: the prompt follows, node01 does not exist on this paper. */
+  await type(t.host, 'ssh node01');
+  assert.match(await logText(t.host), /Could not resolve hostname node01/);
+  await type(t.host, 'ssh ' + worker);
+  assert.equal(await t.host.locator('.il-immersive__cli-prompt').textContent(), 'root@' + worker + ':~#');
+  await type(t.host, 'exit');
+  assert.equal(await t.host.locator('.il-immersive__cli-prompt').textContent(), 'root@controlplane:~#');
+  await type(t.host, 'reset');
+  for (const group of t.cmds) for (const c of group) await type(t.host, c);
+  assert.match(await page.locator('[data-il-ts-live]').textContent(), /resolved ✓/);
+  const log = await logText(t.host);
+  assert.equal(n01.test(log), false, 'the shell never prints node01 on a re-drawn paper');
+  const panel = await t.host.locator('.il-immersive__sim-verdict, .il-immersive__sim-btn').allInnerTexts();
+  assert.deepEqual(panel.filter(x => n01.test(x)), [], 'sim panel speaks the drawn worker name');
+  await t.host.screenshot({ path: path.join(shots, 'immersive-cks-paper-fault-node01.png') });
+  await page.locator('[data-il-ts-end]').click();
+  await page.locator('[data-il-ts-done]:not([hidden])').waitFor({ timeout: 10000 });
+  const note = await page.locator('[data-il-ts-fault-note="cks-bench-kubelet"]').textContent();
+  assert.ok(note.startsWith('Fault staged on this paper: ' + worker + ' kubelet') && note.endsWith('(a fault variant)'), note);
+  assert.deepEqual(errors, []);
+  await page.close();
+
+  const off = await open('/immersive/cks/?seed=1174&variants=0');
+  await off.page.locator('[data-il-ts-start][data-count="6"]').click();
+  await off.page.locator('[data-il-ts-run]:not([hidden])').waitFor();
+  const t2 = await tsIncident(off.page);
+  assert.equal(t2.id, 'cks-bench-kubelet', 'same seed, same draw');
+  assert.equal(t2.inc.fault, null);
+  assert.equal(t2.inc.taskId, 'kubelet-auth');
+  assert.equal(await t2.host.getAttribute('data-il-ts-fault'), null);
+  assert.deepEqual(off.errors, []);
+  await off.page.close();
+  return t.inc.fault.id + ' on ' + worker + ' · kubelet-auth replay ' + replayed + '/' + t.cmds.length + ' · resolved · variants=0 → kubelet-auth';
 });
 
 await browser.close();
